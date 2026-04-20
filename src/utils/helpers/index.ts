@@ -1,1 +1,3 @@
-export * from "./rolling-average.ts";
+export * from "./dom";
+export * from "./rolling-average";
+export * from "./math";
