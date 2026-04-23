@@ -6,7 +6,7 @@ import type {
   TickWorkerStartRequestParameters,
   TickWorkerStopEvent,
   TickWorkerTickEvent,
-} from "./types.ts";
+} from "./types";
 
 //================================================
 

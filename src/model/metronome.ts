@@ -1,8 +1,9 @@
-import { MINUTE } from "../utils/constants";
-import { TickWorkerApi } from "../workers/tick";
-import { Note } from "./note.ts";
-import { Player } from "./player.ts";
-import { Rhythm } from "./rhythm.ts";
+import { MINUTE } from "~/utils/constants";
+import { TickWorkerApi } from "~/workers/tick";
+
+import { Note } from "./note";
+import { Player } from "./player";
+import { Rhythm } from "./rhythm";
 
 //================================================
 

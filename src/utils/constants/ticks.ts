@@ -1,4 +1,4 @@
-import { MAX_BPM, MIN_BPM } from "./common.ts";
+import { MAX_BPM, MIN_BPM } from "./common";
 
 const tickValues: number[] = [];
 

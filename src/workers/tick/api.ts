@@ -5,7 +5,9 @@ import type {
   TickWorkerStartRequest,
   TickWorkerStartRequestParameters,
   TickWorkerStopRequest,
-} from "./types.ts";
+} from "./types";
+
+//================================================
 
 export class TickWorkerApi {
   constructor() {

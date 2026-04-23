@@ -1,6 +1,6 @@
-import type { IRhythm } from "../../model";
-import type { ISound } from "../../model/sound";
 import { TEMP_CLICK_SOUND_URL } from "./common";
+
+import type { IRhythm, ISound } from "~/model";
 
 //================================================
 

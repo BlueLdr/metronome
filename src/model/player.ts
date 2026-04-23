@@ -1,5 +1,5 @@
-import { Note } from "./note.ts";
-import { Sound } from "./sound.ts";
+import { Note } from "./note";
+import { Sound } from "./sound";
 
 //================================f================
 

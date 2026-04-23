@@ -1,4 +1,6 @@
-import { Note, type INote } from "./note.ts";
+import { Note } from "./note";
+
+import type { INote } from "./note";
 
 //================================================
 

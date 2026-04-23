@@ -2,11 +2,11 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
-import { loadStorageSafely } from "../helpers";
+import { loadStorageSafely } from "~/utils/helpers";
 
 import { useValueRef } from "./data";
 
-import type { TypeCheckFunction } from "../types";
+import type { TypeCheckFunction } from "~/utils/types";
 
 //================================================
 
