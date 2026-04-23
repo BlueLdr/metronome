@@ -1,4 +1,4 @@
-import { tickValues } from "../constants";
+import { tickValues } from "~/utils/constants";
 
 //================================================
 

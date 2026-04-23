@@ -1,13 +1,17 @@
 import { useEffect, useMemo } from "react";
+import { throttle } from "lodash";
+
+import { Metronome, Rhythm } from "~/model";
+
 import { useAppState } from "../../context";
-import { Metronome, Rhythm } from "../../../model";
-import {
-  MetronomeSlider,
-  type MetronomeSliderProps,
-} from "./MetronomeSlider.tsx";
+import { MetronomeSlider } from "./MetronomeSlider";
+
 import Grid from "@mui/material/Grid";
 import ToggleButton from "@mui/material/ToggleButton";
-import { throttle } from "lodash";
+
+import type { MetronomeSliderProps } from "./MetronomeSlider.tsx";
+
+//================================================
 
 export type MetronomeProps = {
   sliderProps?: Partial<MetronomeSliderProps>;

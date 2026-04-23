@@ -1,5 +1,8 @@
-import { MINUTE } from "../utils/constants";
-import { type ISound, Sound } from "./sound.ts";
+import { MINUTE } from "~/utils/constants";
+
+import { Sound } from "./sound";
+
+import type { ISound } from "./sound";
 
 //================================================
 

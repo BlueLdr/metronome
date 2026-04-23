@@ -1,4 +1,4 @@
-import type { TypeCheckFunction } from "../types";
+import type { TypeCheckFunction } from "~/utils/types";
 
 //================================================
 

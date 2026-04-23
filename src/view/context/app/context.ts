@@ -1,13 +1,15 @@
 import { createContext, useContext } from "react";
-import { type AppMainState, type WithStateHook } from "../../../utils/types";
-import { loadStorageSafely } from "../../../utils/helpers";
+
+import { loadStorageSafely } from "~/utils/helpers";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
   DEFAULT_BPM,
   DEFAULT_RHYTHM,
   DEFAULT_VOLUME,
   VOLUME_STORAGE_KEY,
-} from "../../../utils/constants";
+} from "~/utils/constants";
+
+import type { AppMainState, WithStateHook } from "~/utils/types";
 
 //================================================
 

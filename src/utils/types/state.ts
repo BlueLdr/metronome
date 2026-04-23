@@ -1,4 +1,4 @@
-import type { IRhythm } from "../../model";
+import type { IRhythm } from "~/model";
 
 export type AppMainState = {
   rhythm: IRhythm;

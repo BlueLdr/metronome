@@ -1,12 +1,14 @@
 import { RoundSlider } from "blueldr-react-round-slider";
-import type { ISettings, ISettingsPointer } from "blueldr-react-round-slider";
 import { useState } from "react";
-import { MAX_BPM, MIN_BPM } from "../../../utils/constants";
+
+import { MAX_BPM, MIN_BPM } from "~/utils/constants";
 import {
   getBpmFromSliderPosition,
   getSliderPositionFromBpm,
   roundToNearestBpmPosition,
-} from "../../../utils/helpers";
+} from "~/utils/helpers";
+
+import type { ISettings, ISettingsPointer } from "blueldr-react-round-slider";
 
 //================================================
 
