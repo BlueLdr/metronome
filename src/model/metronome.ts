@@ -1,5 +1,5 @@
-import { MINUTE } from "../utils/constants.ts";
-import { TickWorkerApi } from "../workers/tick/api.ts";
+import { MINUTE } from "../utils/constants";
+import { TickWorkerApi } from "../workers/tick";
 import { Note } from "./note.ts";
 import { Player } from "./player.ts";
 import { Rhythm } from "./rhythm.ts";
@@ -13,6 +13,7 @@ const MIN_TICK_INTERVAL = 10; // ms
 //================================================
 
 interface MetronomeTimingState {
+  lastTickTimestamp: number;
   lastNoteTimestamp: number;
   lastNoteDuration: number;
   // elapsedTicksSinceLastBeat: number;
@@ -90,13 +91,6 @@ export class Metronome {
       throw new Error(`Called "tick" without starting the metronome`);
     }
     const currentTime = this.currentTime;
-    console.group(`Tick ${currentTime}`);
-    console.log(`curState: `, curState);
-    console.log(`this.rhythmState: `, this.rhythmState);
-    console.log(
-      `this.scheduledNoteQueue.entries(): `,
-      Array.from(this.scheduledNoteQueue.entries()),
-    );
     const { lastNoteTimestamp, lastNoteDuration } = curState;
 
     const lookAheadInterval = this.tickInterval * this.scheduleAheadTickCount;
@@ -129,8 +123,8 @@ export class Metronome {
     Array.from(this.scheduledNoteQueue.entries()).forEach(
       ([note, { timestamp }]) => {
         if (this.currentTime >= timestamp) {
-          console.debug(`played note ${note.index} at ${timestamp}`);
           this.timingState = {
+            lastTickTimestamp: currentTime,
             lastNoteTimestamp: timestamp,
             lastNoteDuration: this.getNoteDuration(note),
           };
@@ -144,30 +138,33 @@ export class Metronome {
         }
       },
     );
-    console.groupEnd();
   }
 
   public start(rhythm: Rhythm) {
     if (!this.player.initialized) {
       this.player.init();
     }
-    this.scheduledNoteQueue.clear();
-    const currentTime = this.currentTime;
 
-    this.setPlaying(true);
-    this.player.scheduleNote(rhythm.notes[0], currentTime);
-    this.rhythmState = {
-      rhythm,
-      nextNoteIndex: 1,
-      nextNote: rhythm.notes[1],
-    };
-    this.timingState = {
-      lastNoteDuration: this.getNoteDuration(rhythm.notes[0]),
-      lastNoteTimestamp: currentTime,
-      // elapsedTicksSinceLastBeat: 0,
-    };
-    this.player.start();
-    this.ticker.start({ interval: this.tickInterval });
+    rhythm.waitForInit().then(() => {
+      this.scheduledNoteQueue.clear();
+      const currentTime = this.currentTime;
+
+      this.setPlaying(true);
+      this.player.scheduleNote(rhythm.notes[0], currentTime);
+      this.rhythmState = {
+        rhythm,
+        nextNoteIndex: 1,
+        nextNote: rhythm.notes[1],
+      };
+      this.timingState = {
+        lastTickTimestamp: currentTime,
+        lastNoteDuration: this.getNoteDuration(rhythm.notes[0]),
+        lastNoteTimestamp: currentTime,
+        // elapsedTicksSinceLastBeat: 0,
+      };
+      this.player.start();
+      this.ticker.start({ interval: this.tickInterval });
+    });
   }
 
   /*  private async tick() {
@@ -264,11 +261,18 @@ export class Metronome {
 
   */
 
-  private clearQueue() {
-    Array.from(this.scheduledNoteQueue.values()).forEach(({ source }) => {
-      source.stop();
-    });
-    this.scheduledNoteQueue.clear();
+  private clearQueue(clearAll = false) {
+    Array.from(this.scheduledNoteQueue.entries()).forEach(
+      ([note, { source, timestamp }]) => {
+        if (
+          clearAll ||
+          (this.timingState &&
+            timestamp > this.timingState.lastTickTimestamp + this.tickInterval)
+        )
+          source.stop();
+        this.scheduledNoteQueue.delete(note);
+      },
+    );
   }
 
   public stop() {
@@ -276,12 +280,13 @@ export class Metronome {
     this.ticker.stop();
     this.timingState = undefined;
     this.rhythmState = undefined;
-    this.clearQueue();
+    this.clearQueue(true);
     this.setPlaying(false);
   }
 
   public setBpm(bpm: number) {
     this.bpm = bpm;
+    this.clearQueue();
     this.ticker.change({ interval: this.tickInterval });
   }
 

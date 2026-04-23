@@ -1,20 +1,20 @@
-import { MINUTE } from "../utils/constants.ts";
-import { Sound } from "./sound.ts";
+import { MINUTE } from "../utils/constants";
+import { type ISound, Sound } from "./sound.ts";
 
 //================================================
 
 export interface INote {
   volume: number;
-  sound: Sound;
+  sound: ISound;
   interval: number;
 }
 
 export class Note implements INote {
-  constructor(index: number, config: INote) {
+  constructor(index: number, config: INote, onInitSound?: () => void) {
     this.index = index;
     this.interval = config.interval;
     this._volume = config.volume;
-    this.sound = config.sound;
+    this.sound = new Sound(config.sound.name, config.sound.url, onInitSound);
   }
 
   readonly index: number;

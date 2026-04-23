@@ -16,22 +16,27 @@ class TickWorker {
 
   start(options: TickWorkerStartRequestParameters) {
     this.interval = options.interval;
-    this.timer = setInterval(() => this.tick(), this.interval);
+    this.timer = setInterval(() => this.tick(options.interval), this.interval);
     postMessage({
       type: "start",
       interval: this.interval,
     } satisfies TickWorkerStartEvent);
   }
 
-  tick() {
+  tick(lastInterval: number) {
     const { interval } = this;
+    if (lastInterval !== interval) {
+      clearInterval(this.timer);
+      this.timer = setInterval(() => this.tick(interval), interval);
+    }
+
     postMessage({
       type: "tick",
       interval,
     } satisfies TickWorkerTickEvent);
   }
 
-  update(options: TickWorkerChangeRequest["parameters"]) {
+  change(options: TickWorkerChangeRequest["parameters"]) {
     this.interval = options.interval;
     postMessage({
       type: "change",
@@ -52,7 +57,7 @@ self.onmessage = function onMessage(e: MessageEvent<TickWorkerRequest>) {
   if (e.data.command === "start") {
     worker.start(e.data.parameters);
   } else if (e.data.command === "change") {
-    worker.update(e.data.parameters);
+    worker.change(e.data.parameters);
   } else if (e.data.command === "stop") {
     worker.stop();
   }

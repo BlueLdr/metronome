@@ -15,21 +15,33 @@ export interface IRhythm {
 export class Rhythm implements IRhythm {
   constructor(timeSignature: TimeSignature, notes: INote[]) {
     this.timeSignature = timeSignature;
+    this.notePromises = [];
     this.notes = this.initializeNotes(notes);
   }
 
   readonly timeSignature: TimeSignature;
   readonly notes: Note[];
 
+  private notePromises: Promise<void>[];
+
   private initializeNotes(defs: INote[]): Note[] {
     const notes: Note[] = [];
     let i = 0;
     for (const def of defs) {
-      notes.push(new Note(i, def));
+      const resolveRef = { current: () => undefined };
+      const promise = new Promise<void>((resolve) => {
+        resolveRef.current = resolve;
+      });
+      this.notePromises.push(promise);
+      notes.push(new Note(i, def, () => resolveRef.current()));
       i += 1;
     }
 
     return notes;
+  }
+
+  waitForInit() {
+    return Promise.allSettled(this.notePromises);
   }
 
   nextNote(current: number | Note) {

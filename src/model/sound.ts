@@ -5,14 +5,14 @@ export interface ISound {
 }
 
 export class Sound implements ISound {
-  constructor(name: string, url: string) {
+  constructor(name: string, url: string, onInit?: () => void) {
     this.name = name;
     this.url = url;
-    this.init();
+    this.init().then(onInit);
   }
 
   private init() {
-    fetch(this.url).then(async (response) => {
+    return fetch(this.url).then(async (response) => {
       this.data = await response.arrayBuffer();
     });
   }

@@ -1,4 +1,4 @@
-import { RollingAverage } from "../index.ts";
+import { RollingAverage } from "./rolling-average";
 
 //================================================
 

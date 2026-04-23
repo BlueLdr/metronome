@@ -67,14 +67,9 @@ export class Player {
     if (!this._initialized) {
       return;
     }
-    console.log(`scheduling note ${note.index} to play at ${timeInMs}`);
 
     const source = await note.getNoteSourceNode(this.audioContext);
     source.start(timeInMs / 1000);
-    /*this.gainNode.gain.setValueAtTime(
-      this.volume * note.volume,
-      timeInMs / 1000,
-    );*/
 
     return source;
   }

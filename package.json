@@ -16,6 +16,7 @@
     "@mui/icons-material": "7.3.10",
     "@mui/material": "7.3.10",
     "blueldr-react-round-slider": "github:blueldr/react-round-slider",
+    "lodash": "4.18.1",
     "react": "19.2.5",
     "react-dom": "19.2.5"
   },
@@ -24,6 +25,7 @@
     "@eslint/js": "9.39.4",
     "@rolldown/plugin-babel": "0.2.3",
     "@types/babel__core": "7.20.5",
+    "@types/lodash": "4.17.24",
     "@types/node": "24.12.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

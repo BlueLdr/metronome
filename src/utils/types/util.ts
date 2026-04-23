@@ -8,6 +8,10 @@ export type NullableStringPropOf<T extends object> = PropsOfType<
   string | null | undefined
 >;
 
+export interface TypeCheckFunction<T> {
+  (value: unknown): value is T;
+}
+
 /** an object with the value and setter from a React.useState hook */
 export type WithStateHook<Name extends string, T> = Record<Name, T> &
   Record<`set${Capitalize<Name>}`, React.Dispatch<React.SetStateAction<T>>>;
