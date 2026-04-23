@@ -1,13 +1,30 @@
+import { ThemeProvider } from "~/theme";
+
 import { MetronomeComponent } from "./components";
 import { AppContextProvider } from "./context";
 
 //================================================
 
+/**
+ * Title:
+ *
+ * Istok+Web
+ *
+ *
+ * Body:
+ *
+ * Assistant
+ * Gothic+A1
+ * Istok+Web
+ */
+
 function App() {
   return (
-    <AppContextProvider>
-      <MetronomeComponent />
-    </AppContextProvider>
+    <ThemeProvider>
+      <AppContextProvider>
+        <MetronomeComponent />
+      </AppContextProvider>
+    </ThemeProvider>
   );
 }
 

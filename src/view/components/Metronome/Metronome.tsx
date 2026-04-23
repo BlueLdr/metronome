@@ -4,12 +4,12 @@ import { throttle } from "lodash";
 import { Metronome, Rhythm } from "~/model";
 
 import { useAppState } from "../../context";
-import { MetronomeSlider } from "./MetronomeSlider";
+import { MetronomeSlider } from "./Slider/MetronomeSlider";
 
 import Grid from "@mui/material/Grid";
-import ToggleButton from "@mui/material/ToggleButton";
+import Button from "@mui/material/Button";
 
-import type { MetronomeSliderProps } from "./MetronomeSlider.tsx";
+import type { MetronomeSliderProps } from "./Slider/MetronomeSlider.tsx";
 
 //================================================
 
@@ -52,19 +52,21 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
       justifyContent="center"
     >
       <MetronomeSlider value={state.bpm} onChange={setBpm} {...sliderProps} />
-      <ToggleButton
-        color="primary"
-        value={playing}
-        onChange={() =>
+      <Button
+        color={playing ? "error" : "primary"}
+        variant="contained"
+        size="large"
+        onClick={() =>
           playing
             ? metronome.stop()
             : metronome.start(
                 new Rhythm(state.rhythm.timeSignature, state.rhythm.notes),
               )
         }
+        sx={{ width: (theme) => theme.spacing(32) }}
       >
         {playing ? "Stop" : "Start"}
-      </ToggleButton>
+      </Button>
     </Grid>
   );
 }

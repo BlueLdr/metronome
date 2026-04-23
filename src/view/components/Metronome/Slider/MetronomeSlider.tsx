@@ -1,0 +1,156 @@
+import { useEffect, useMemo, useState } from "react";
+import { debounce } from "lodash";
+import { styled } from "@mui/material/styles";
+
+import { MAX_BPM, MIN_BPM } from "~/utils/constants";
+import {
+  getBpmFromSliderPosition,
+  getSliderPositionFromBpm,
+} from "~/utils/helpers";
+
+import { SliderNumberInput } from "./SliderNumberInput";
+import { ThemedSlider } from "./ThemedSlider";
+
+import Grid from "@mui/material/Grid";
+
+import type { ISettings, ISettingsPointer } from "blueldr-react-round-slider";
+
+//================================================
+
+const TextContainer = styled("div")`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+`;
+
+const increments: number[] = [];
+for (let i = MIN_BPM; i <= MAX_BPM; i++) {
+  const p = getSliderPositionFromBpm(i);
+  const pPrev = getSliderPositionFromBpm(i - 1);
+  const pNext = getSliderPositionFromBpm(i + 1);
+  if (i === MIN_BPM) {
+    increments.push(pNext - p);
+  } else if (i === MAX_BPM) {
+    increments.push(p - pPrev);
+  } else {
+    const avg = (Math.abs(p - pPrev) + Math.abs(p - pNext)) / 2;
+    increments.push(avg);
+  }
+}
+
+export type MetronomeSliderSingleValueProps = {
+  value: number;
+  onChange: (newValue: number) => void;
+};
+/*export type MetronomeSliderRangeValueProps = {
+}*/
+
+export type MetronomeSliderInheritedProps = Omit<
+  ISettings,
+  "pointers" | "onChange" | "min" | "max" | "step" | "arrowStep"
+>;
+export type MetronomeSliderProps = MetronomeSliderInheritedProps &
+  MetronomeSliderSingleValueProps;
+
+export function MetronomeSlider({
+  value = 80,
+  onChange,
+  ...props
+}: MetronomeSliderProps) {
+  const [, setReRender] = useState(false);
+  const valueAsPosition = getSliderPositionFromBpm(value);
+  const handleChange = (pointers: ISettingsPointer[]) => {
+    const newPosition = pointers[0].value;
+    if (typeof newPosition === "string") {
+      return;
+    }
+
+    const newValue = getBpmFromSliderPosition(newPosition);
+    if (newValue !== value) {
+      onChange(newValue);
+    } else if (valueAsPosition < newPosition) {
+      onChange(Math.min(value + 1, MAX_BPM));
+    } else if (valueAsPosition > newPosition) {
+      onChange(Math.max(value - 1, MIN_BPM));
+    } else {
+      setReRender((v) => !v);
+    }
+  };
+
+  const [hovered, setHovered] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
+  const hideButtons = useMemo(
+    () => debounce(() => setShowButtons(false), 3000),
+    [],
+  );
+
+  useEffect(() => {
+    if (showButtons) {
+      hideButtons();
+      return () => hideButtons.cancel();
+    }
+  }, [showButtons, hideButtons]);
+
+  const step = increments[value - MIN_BPM];
+
+  return (
+    <Grid
+      container
+      position="relative"
+      sx={
+        !showButtons
+          ? { "& .MuiIconButton-root:not(:hover):not(:focus)": { opacity: 0 } }
+          : undefined
+      }
+      onMouseOver={() => setHovered(true)}
+      onMouseOut={() => {
+        setHovered(false);
+        setShowButtons(false);
+      }}
+      onMouseMove={() => setShowButtons(true)}
+    >
+      <ThemedSlider
+        pathStartAngle={120}
+        pathEndAngle={60}
+        min={0}
+        max={getSliderPositionFromBpm(MAX_BPM)}
+        round={10}
+        step={step}
+        arrowStep={step}
+        enableTicks
+        ticksCount={140}
+        ticksGroupSize={5}
+        getText={() => ""}
+        getTickLabel={(v) =>
+          typeof v === "string"
+            ? v
+            : `${Math.round(getBpmFromSliderPosition(v) / 2) * 2}`
+        }
+        {...props}
+        pointers={[{ value: getSliderPositionFromBpm(value) }]}
+        onChange={handleChange}
+        mousewheelDisabled={!hovered}
+      />
+      <TextContainer>
+        <SliderNumberInput
+          value={value}
+          smallStep={1}
+          largeStep={value < 120 ? 2 : 4}
+          onInput={(e) => {
+            const newValue = Number((e.target as HTMLInputElement).value);
+            if (!isNaN(newValue)) {
+              onChange(Math.max(MIN_BPM, Math.min(MAX_BPM, newValue)));
+            }
+          }}
+          onValueChange={(newValue) =>
+            onChange(Math.max(MIN_BPM, Math.min(MAX_BPM, newValue)))
+          }
+          min={MIN_BPM}
+          max={MAX_BPM}
+        />
+      </TextContainer>
+    </Grid>
+  );
+}
