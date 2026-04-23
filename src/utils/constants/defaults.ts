@@ -21,3 +21,5 @@ export const DEFAULT_RHYTHM: IRhythm = {
 
 export const DEFAULT_BPM = 80;
 export const DEFAULT_VOLUME = 0.5;
+export const DEFAULT_BEAT_DIVISION = 4;
+export const DEFAULT_TAP_TEMPO_SAMPLE_SIZE = 6;

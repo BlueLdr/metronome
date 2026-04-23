@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { debounce } from "lodash";
+import { debounce, round } from "lodash";
 import { styled } from "@mui/material/styles";
 
-import { MAX_BPM, MIN_BPM } from "~/utils/constants";
+import {
+  MAX_BPM,
+  MAX_SLIDER_BPM,
+  MIN_BPM,
+  MIN_SLIDER_BPM,
+} from "~/utils/constants";
 import {
   getBpmFromSliderPosition,
   getSliderPositionFromBpm,
@@ -26,13 +31,13 @@ const TextContainer = styled("div")`
 `;
 
 const increments: number[] = [];
-for (let i = MIN_BPM; i <= MAX_BPM; i++) {
+for (let i = MIN_SLIDER_BPM; i <= MAX_SLIDER_BPM; i++) {
   const p = getSliderPositionFromBpm(i);
   const pPrev = getSliderPositionFromBpm(i - 1);
   const pNext = getSliderPositionFromBpm(i + 1);
-  if (i === MIN_BPM) {
+  if (i === MIN_SLIDER_BPM) {
     increments.push(pNext - p);
-  } else if (i === MAX_BPM) {
+  } else if (i === MAX_SLIDER_BPM) {
     increments.push(p - pPrev);
   } else {
     const avg = (Math.abs(p - pPrev) + Math.abs(p - pNext)) / 2;
@@ -60,7 +65,7 @@ export function MetronomeSlider({
   ...props
 }: MetronomeSliderProps) {
   const [, setReRender] = useState(false);
-  const valueAsPosition = getSliderPositionFromBpm(value);
+  const valueAsPosition = round(getSliderPositionFromBpm(value), 10);
   const handleChange = (pointers: ISettingsPointer[]) => {
     const newPosition = pointers[0].value;
     if (typeof newPosition === "string") {
@@ -68,12 +73,23 @@ export function MetronomeSlider({
     }
 
     const newValue = getBpmFromSliderPosition(newPosition);
+    console.log(
+      `newPosition,
+      newValue,
+      valueAsPosition,
+      value,
+    : `,
+      newPosition,
+      newValue,
+      valueAsPosition,
+      value,
+    );
     if (newValue !== value) {
       onChange(newValue);
     } else if (valueAsPosition < newPosition) {
-      onChange(Math.min(value + 1, MAX_BPM));
+      onChange(Math.min(value + 1, MAX_SLIDER_BPM));
     } else if (valueAsPosition > newPosition) {
-      onChange(Math.max(value - 1, MIN_BPM));
+      onChange(Math.max(value - 1, MIN_SLIDER_BPM));
     } else {
       setReRender((v) => !v);
     }
@@ -101,7 +117,9 @@ export function MetronomeSlider({
       position="relative"
       sx={
         !showButtons
-          ? { "& .MuiIconButton-root:not(:hover):not(:focus)": { opacity: 0 } }
+          ? {
+              "& .MuiIconButton-root:not(:hover):not(:focus)": { opacity: 0 },
+            }
           : undefined
       }
       onMouseOver={() => setHovered(true)}
@@ -115,7 +133,7 @@ export function MetronomeSlider({
         pathStartAngle={120}
         pathEndAngle={60}
         min={0}
-        max={getSliderPositionFromBpm(MAX_BPM)}
+        max={getSliderPositionFromBpm(MAX_SLIDER_BPM)}
         round={10}
         step={step}
         arrowStep={step}
@@ -129,7 +147,13 @@ export function MetronomeSlider({
             : `${Math.round(getBpmFromSliderPosition(v) / 2) * 2}`
         }
         {...props}
-        pointers={[{ value: getSliderPositionFromBpm(value) }]}
+        pointers={[
+          {
+            value: getSliderPositionFromBpm(
+              Math.min(MAX_SLIDER_BPM, Math.max(MIN_SLIDER_BPM, value)),
+            ),
+          },
+        ]}
         onChange={handleChange}
         mousewheelDisabled={!hovered}
       />
@@ -144,9 +168,11 @@ export function MetronomeSlider({
               onChange(Math.max(MIN_BPM, Math.min(MAX_BPM, newValue)));
             }
           }}
-          onValueChange={(newValue) =>
-            onChange(Math.max(MIN_BPM, Math.min(MAX_BPM, newValue)))
-          }
+          onValueChange={(newValue) => {
+            if (newValue != null) {
+              onChange(Math.max(MIN_BPM, Math.min(MAX_BPM, newValue)));
+            }
+          }}
           min={MIN_BPM}
           max={MAX_BPM}
         />

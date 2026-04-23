@@ -32,10 +32,10 @@ export function ThemedSlider({ ...props }: ISettings) {
 
   const typographyProps = {
     tickValuesFontSize: 16,
-    tickValuesFontFamily: "Reddit Sans Condensed",
+    tickValuesFontFamily: "var(--font-bpm-ticks)",
 
     textFontSize: 84,
-    textFontFamily: "Istok Web",
+    textFontFamily: "var(--font-main-bpm)",
   };
 
   const sizeProps = {
@@ -49,7 +49,7 @@ export function ThemedSlider({ ...props }: ISettings) {
 
     pathThickness: 8,
     pathBorder: 0,
-    pathRadius: 180,
+    pathRadius: 186,
 
     pointerBorder: 0,
     pointerRadius: 12,
