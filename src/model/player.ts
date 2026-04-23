@@ -28,6 +28,10 @@ export class Player {
   }
   set volume(value: number) {
     this._volume = Sound.clampVolume(value);
+    if (this._initialized) {
+      console.log(`setting volume: `, value);
+      this.gainNode.gain.value = this._volume;
+    }
   }
 
   public init() {
@@ -68,7 +72,10 @@ export class Player {
       return;
     }
 
-    const source = await note.getNoteSourceNode(this.audioContext);
+    const source = await note.getNoteSourceNode(
+      this.audioContext,
+      this._volume,
+    );
     source.start(timeInMs / 1000);
 
     return source;

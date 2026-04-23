@@ -290,12 +290,24 @@ export class Metronome {
     this.clearQueue();
     this.ticker.change({ interval: this.tickInterval });
   }
+  public setBeatDivision(beatDivision: number) {
+    this._beatDivision = beatDivision;
+    this.clearQueue();
+    this.ticker.change({ interval: this.tickInterval });
+  }
 
   public getNoteDuration(note: Note): number {
     return note.getDurationInMs(this.bpm, this._beatDivision);
   }
 
   //================================================
+
+  getVolume() {
+    return this.player.volume;
+  }
+  setVolume(value: number) {
+    this.player.volume = value;
+  }
 
   get on() {
     return this.ticker.on;

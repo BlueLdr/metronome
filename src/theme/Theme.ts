@@ -28,6 +28,11 @@ export const MuiTheme = createMuiThemeForEnvironment({
     primary: {
       main: "#107bfc",
     },
+    secondary: {
+      light: "#fdcc31",
+      main: "#fdb515",
+      dark: "#fd9a14",
+    },
   },
   typography: {
     fontFamily: "var(--font-default)",
@@ -62,7 +67,10 @@ export const MuiTheme = createMuiThemeForEnvironment({
         disableElevation: true,
       },
       styleOverrides: {
-        root: {},
+        sizeLarge: {
+          fontWeight: 500,
+          fontSize: "1rem",
+        },
       },
     },
     MuiIconButton: {

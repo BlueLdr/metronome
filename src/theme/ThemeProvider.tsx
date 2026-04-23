@@ -6,8 +6,6 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 
 //================================================
 
-// import { Theme } from "./Theme";
-
 const useGlobalStyles = (
   <GlobalStyles
     styles={{
@@ -16,7 +14,10 @@ const useGlobalStyles = (
         fontOpticalSizing: "auto",
         "--font-default": "Gothic A1",
         "--font-title": "Istok Web",
-        "--font-button": "Spline Sans Mono",
+
+        "--font-button": "Onest",
+        "--font-main-bpm": "Roboto Flex",
+        "--font-bpm-ticks": "Reddit Sans Condensed",
       },
       body: {
         margin: 0,
@@ -26,7 +27,7 @@ const useGlobalStyles = (
       },
       "#root": {
         display: "grid",
-        gridTemplateColumns: "auto 1fr",
+        // gridTemplateColumns: "auto 1fr",
         minHeight: "100vh",
       },
     }}
