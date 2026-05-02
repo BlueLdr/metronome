@@ -8,16 +8,17 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 
 const useGlobalStyles = (
   <GlobalStyles
-    styles={{
+    styles={(theme) => ({
       html: {
         height: "100%",
         fontOpticalSizing: "auto",
-        "--font-default": "Gothic A1",
-        "--font-title": "Istok Web",
+        "--font-default": "Onest",
+        "--font-title": "Onest",
 
         "--font-button": "Onest",
-        "--font-main-bpm": "Roboto Flex",
+        "--font-number-input": "Roboto Flex",
         "--font-bpm-ticks": "Reddit Sans Condensed",
+        backgroundColor: theme.palette.background.default,
       },
       body: {
         margin: 0,
@@ -30,7 +31,7 @@ const useGlobalStyles = (
         // gridTemplateColumns: "auto 1fr",
         minHeight: "100vh",
       },
-    }}
+    })}
   />
 );
 

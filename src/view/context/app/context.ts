@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 
 import { Metronome } from "~/model";
 import { loadStorageSafely } from "~/utils/helpers";
@@ -8,6 +8,7 @@ import {
   DEFAULT_BPM,
   DEFAULT_RHYTHM,
   DEFAULT_VOLUME,
+  DEFAULT_VOLUME_SETTINGS,
   VOLUME_STORAGE_KEY,
 } from "~/utils/constants";
 
@@ -27,6 +28,7 @@ const initialMainState = loadStorageSafely<AppMainState>(
     bpm: DEFAULT_BPM,
     rhythm: DEFAULT_RHYTHM,
     beatDivision: DEFAULT_BEAT_DIVISION,
+    volumeSettings: DEFAULT_VOLUME_SETTINGS,
   },
 );
 const initialVolume = loadStorageSafely<number>(
@@ -47,6 +49,3 @@ export const AppContext = createContext<AppContextState>({
     beatDivision: initialMainState.beatDivision,
   }),
 });
-
-export const useAppState = () => useContext(AppContext);
-export const useMetronome = () => useContext(AppContext).metronome;

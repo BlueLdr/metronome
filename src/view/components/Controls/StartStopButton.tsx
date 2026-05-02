@@ -1,15 +1,17 @@
 import { useMemo } from "react";
 
 import { Rhythm } from "~/model";
-import { useAppState } from "~/view/context";
+import { useAppState } from "~/utils/hooks";
 
-import Button from "@mui/material/Button";
+import Fab from "@mui/material/Fab";
+import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";
+import PauseRounded from "@mui/icons-material/PauseRounded";
 
-import type { ButtonProps } from "@mui/material/Button";
+import type { FabProps } from "@mui/material/Fab";
 
 //================================================
 
-export type StartStopButtonProps = ButtonProps;
+export type StartStopButtonProps = FabProps;
 
 export function StartStopButton(props: StartStopButtonProps) {
   const { metronome, playing, state } = useAppState();
@@ -20,16 +22,21 @@ export function StartStopButton(props: StartStopButtonProps) {
   );
 
   return (
-    <Button
+    <Fab
       color={playing ? "error" : "primary"}
-      variant="contained"
       size="large"
       onClick={() => (playing ? metronome.stop() : metronome.start(rhythm))}
-      sx={{ minWidth: (theme) => theme.spacing(32) }}
-      fullWidth
+      sx={{
+        width: (theme) => theme.spacing(16),
+        height: (theme) => theme.spacing(16),
+      }}
       {...props}
     >
-      {playing ? "Stop" : "Start"}
-    </Button>
+      {playing ? (
+        <PauseRounded fontSize="large" />
+      ) : (
+        <PlayArrowRounded fontSize="large" />
+      )}
+    </Fab>
   );
 }

@@ -8,7 +8,7 @@ export class Sound implements ISound {
   constructor(name: string, url: string, onInit?: () => void) {
     this.name = name;
     this.url = url;
-    this.data = fetch(this.url).then((response) => response.arrayBuffer());
+    this.data = SoundRegistry.getData(this.url);
     this.data.then(onInit);
   }
 
@@ -24,4 +24,20 @@ export class Sound implements ISound {
   async getArrayBuffer() {
     return this.data;
   }
+}
+
+class SoundRegistry {
+  private static registry = new Map<string, ArrayBuffer>();
+
+  static getData = (url: string) => {
+    const existingData = this.registry.get(url);
+    if (existingData) {
+      return Promise.resolve(existingData.slice());
+    }
+    return fetch(url).then(async (response) => {
+      const data = await response.arrayBuffer();
+      this.registry.set(url, data);
+      return data.slice();
+    });
+  };
 }

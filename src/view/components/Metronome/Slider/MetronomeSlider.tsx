@@ -12,6 +12,8 @@ import {
   getBpmFromSliderPosition,
   getSliderPositionFromBpm,
 } from "~/utils/helpers";
+import { useAppBpmState } from "~/utils/hooks";
+import { StartStopButton } from "~/view/components/Controls";
 
 import { SliderNumberInput } from "./SliderNumberInput";
 import { ThemedSlider } from "./ThemedSlider";
@@ -27,6 +29,13 @@ const TextContainer = styled("div")`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 5;
+`;
+const ButtonContainer = styled("div")`
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translate(-50%, 50%);
   z-index: 5;
 `;
 
@@ -52,19 +61,15 @@ export type MetronomeSliderSingleValueProps = {
 /*export type MetronomeSliderRangeValueProps = {
 }*/
 
-export type MetronomeSliderInheritedProps = Omit<
+export type MetronomeSliderProps = Omit<
   ISettings,
   "pointers" | "onChange" | "min" | "max" | "step" | "arrowStep"
 >;
-export type MetronomeSliderProps = MetronomeSliderInheritedProps &
-  MetronomeSliderSingleValueProps;
 
-export function MetronomeSlider({
-  value = 80,
-  onChange,
-  ...props
-}: MetronomeSliderProps) {
+export function MetronomeSlider(props: MetronomeSliderProps) {
   const [, setReRender] = useState(false);
+  const [value, onChange] = useAppBpmState();
+
   const valueAsPosition = round(getSliderPositionFromBpm(value), 10);
   const handleChange = (pointers: ISettingsPointer[]) => {
     const newPosition = pointers[0].value;
@@ -167,6 +172,9 @@ export function MetronomeSlider({
           max={MAX_BPM}
         />
       </TextContainer>
+      <ButtonContainer>
+        <StartStopButton />
+      </ButtonContainer>
     </Grid>
   );
 }

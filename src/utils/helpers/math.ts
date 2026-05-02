@@ -28,3 +28,7 @@ export const roundToNearestDiscreteValue = (
 
 export const roundToNearestBpmPosition = (value: number) =>
   roundToNearestDiscreteValue(value, tickValues);
+
+// account for stupid js rounding
+export const isInt = (num: number) =>
+  Math.round(num * 1e6) / 1e6 === Math.round(num);

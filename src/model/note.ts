@@ -25,11 +25,11 @@ export class Note implements INote {
   private gainNode: GainNode | undefined = undefined;
   private sourceBuffer: AudioBuffer | undefined = undefined;
 
-  public async getNoteSourceNode(
+  public getNoteSourceNode = async (
     audioContext: AudioContext,
     playerVolume = 1,
     transformBuffer?: (buffer: AudioBuffer) => AudioBuffer,
-  ) {
+  ) => {
     const sourceBuffer = await this.getSourceBuffer(audioContext);
     if (!this.gainNode) {
       this.gainNode = audioContext.createGain();
@@ -42,7 +42,7 @@ export class Note implements INote {
       : sourceBuffer;
     source.connect(this.gainNode).connect(audioContext.destination);
     return source;
-  }
+  };
 
   public async getSourceBuffer(audioContext: AudioContext) {
     if (!this.sourceBuffer) {
@@ -75,5 +75,13 @@ export class Note implements INote {
     const beatValue = 1 / beatDivision;
 
     return (this.interval / beatValue) * beatDuration;
+  }
+
+  toJSON() {
+    return {
+      volume: this.volume,
+      interval: this.interval,
+      sound: this.sound,
+    };
   }
 }

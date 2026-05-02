@@ -1,22 +1,47 @@
+import { mergeClassNames } from "@base-ui/react";
+import * as React from "react";
 import { useCallback } from "react";
 
 import { MAX_BPM, MIN_BPM } from "~/utils/constants";
-import { useTapTempo } from "~/utils/hooks";
-import { useAppState } from "~/view/context";
+import { useAppState, useTapTempo } from "~/utils/hooks";
 
 import Button from "@mui/material/Button";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 import type { ButtonProps } from "@mui/material/Button";
 import type { UseTapTempoOptions } from "~/utils/hooks";
 
 //================================================
 
-export type TapTempoButtonProps = ButtonProps & Partial<UseTapTempoOptions>;
+export type TapTempoButtonProps = Partial<UseTapTempoOptions> &
+  Omit<ButtonProps, "startIcon" | "endIcon" | "children"> &
+  (
+    | {
+        iconOnly?: false;
+        children?: React.ReactNode;
+        activeChildren?: React.ReactNode;
+        icon?: React.ReactNode;
+        activeIcon?: React.ReactNode;
+      }
+    | {
+        iconOnly: true;
+        children?: React.ReactNode;
+        activeChildren?: React.ReactNode;
+        icon: React.ReactNode;
+        activeIcon?: React.ReactNode;
+      }
+  );
 
 export function TapTempoButton({
   onFinish,
   onUpdate,
   sampleSize,
+  children = "Tap Tempo",
+  activeChildren = "Recording...",
+  icon,
+  activeIcon = icon,
+  iconOnly,
   ...props
 }: TapTempoButtonProps) {
   const { setState } = useAppState();
@@ -34,18 +59,65 @@ export function TapTempoButton({
     sampleSize,
   });
 
+  if (iconOnly) {
+    const scale = props.size === "large" ? 16 : props.size === "small" ? 8 : 12;
+    return (
+      <Tooltip
+        title={
+          <Typography variant="overline">
+            {active ? activeChildren : children}
+          </Typography>
+        }
+        enterDelay={100}
+      >
+        <Button
+          variant={active ? "contained" : "outlined"}
+          disableRipple={false}
+          {...props}
+          className={mergeClassNames(
+            active ? "TapTempo-active" : undefined,
+            props.className,
+          )}
+          sx={{
+            borderRadius: (theme) => theme.spacing(999),
+            width: (theme) => theme.spacing(scale),
+            height: (theme) => theme.spacing(scale),
+            minWidth: 0,
+            minHeight: 0,
+            maxHeight: "none",
+            "& .MuiButton-startIcon": {
+              margin: 0,
+            },
+            "&:not(:hover):not(:active):not(:focus):not(.Mui-focused):not(.TapTempo-active)":
+              {
+                opacity: 0.7,
+              },
+            ...props.sx,
+          }}
+          onClick={(e) => {
+            onClick(e);
+            props.onClick?.(e);
+          }}
+        >
+          {active ? activeIcon : icon}
+        </Button>
+      </Tooltip>
+    );
+  }
+
   return (
     <Button
       variant={active ? "contained" : "outlined"}
       disableRipple={false}
       size="large"
       {...props}
+      startIcon={active ? activeIcon : icon}
       onClick={(e) => {
         onClick(e);
         props.onClick?.(e);
       }}
     >
-      {active ? "Recording..." : "Tap tempo"}
+      {active ? (activeChildren ?? "Recording...") : (children ?? "Tap tempo")}
     </Button>
   );
 }

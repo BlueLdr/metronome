@@ -47,6 +47,7 @@ export class Metronome {
   }
 
   private player: Player;
+  private rhythm: Rhythm | undefined = undefined;
   private bpm: number;
   private _beatDivision: number;
 
@@ -93,6 +94,10 @@ export class Metronome {
     return (this.player.audioContext?.currentTime ?? 0) * 1000;
   }
 
+  private get lookaheadTime() {
+    return Math.max(this.frameTime * 2, 20);
+  }
+
   private async scheduleMeasure(
     rhythm: Rhythm,
     startTime?: number,
@@ -116,9 +121,8 @@ export class Metronome {
 
     const currentTime = this.currentTime;
     const now = Date.now();
-    const documentTimelineCurrentTime = document.timeline.currentTime;
 
-    const zeroTime = startTime ?? currentTime + 10;
+    const zeroTime = startTime ?? currentTime + this.frameTime;
     const offset =
       scheduledMeasure.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
     scheduledMeasure.notes.forEach((note) => {
@@ -142,7 +146,6 @@ export class Metronome {
       measure: this.scheduledMeasure,
       startingNoteIndex,
       now,
-      documentTimelineCurrentTime,
       timeUntilExpectedStart: Math.max(
         zeroTime - currentTime - this.frameTime,
         0,
@@ -160,7 +163,8 @@ export class Metronome {
       timestamp: this.currentTime,
     });
     rhythm.waitForInit().then(() => {
-      this.scheduleMeasure(rhythm);
+      this.rhythm = rhythm;
+      this.scheduleMeasure(this.rhythm);
       this.player.start();
       this.playing = true;
     });
@@ -180,42 +184,48 @@ export class Metronome {
   public setBpm(bpm: number) {
     this.bpm = bpm;
     if (this.playing) {
-      this.adjustTempo();
+      this.updateMeasure();
     }
   }
   public setBeatDivision(beatDivision: number) {
     this._beatDivision = beatDivision;
     if (this.playing) {
-      this.adjustTempo();
+      this.updateMeasure();
     }
   }
 
-  public adjustTempo() {
-    if (!this.scheduledMeasure) {
+  public setRhythm(rhythm: Rhythm) {
+    if (!this.scheduledMeasure || !this.playing) {
+      return;
+    }
+    rhythm.waitForInit().then(() => {
+      this.rhythm = rhythm;
+      this.updateMeasure();
+    });
+  }
+
+  private updateMeasure() {
+    if (!this.scheduledMeasure || !this.rhythm) {
       return;
     }
     const currentTime = this.currentTime;
     const now = Date.now();
-    const curTimeInMeasure =
-      (currentTime - this.scheduledMeasure.startTime) %
-      this.scheduledMeasure.duration;
-    const nextNote = this.scheduledMeasure.notes.find(
-      (note) => note.relativeTimestamp > curTimeInMeasure,
-    );
-    const timeUntilNextNote =
-      (nextNote ? nextNote.relativeTimestamp : this.scheduledMeasure.duration) -
-      curTimeInMeasure;
 
-    if (timeUntilNextNote < 10) {
+    const [nextNote, timeUntilNextNote] = this.getNextNote(
+      this.scheduledMeasure,
+      currentTime,
+    );
+
+    if (timeUntilNextNote < this.lookaheadTime) {
       this.scheduleMeasure(
-        this.scheduledMeasure.rhythm,
-        this.currentTime,
+        this.rhythm,
+        currentTime + timeUntilNextNote,
         nextNote?.note.index,
       );
     } else {
       this.nextNoteIndexAfterTempoChange = nextNote?.note.index ?? 0;
       this.timer.start({
-        timestamp: currentTime + timeUntilNextNote - this.frameTime,
+        timestamp: currentTime + timeUntilNextNote - this.lookaheadTime,
         now,
         actionIfLate: "execute",
         id: this.getTimeoutId(),
@@ -230,17 +240,40 @@ export class Metronome {
   private onTimeout(e: TimerWorkerTimeoutEvent) {
     if (
       e.id !== this.getTimeoutId() ||
-      !this.scheduledMeasure ||
+      !this.rhythm ||
       this.nextNoteIndexAfterTempoChange == null
     ) {
       return;
     }
 
     this.scheduleMeasure(
-      this.scheduledMeasure.rhythm,
-      Math.max(e.timestamp + this.frameTime, this.currentTime),
+      this.rhythm,
+      Math.max(e.timestamp, this.currentTime + this.frameTime * 2),
       this.nextNoteIndexAfterTempoChange,
     );
+  }
+
+  private getNextNote(measure: ScheduledMeasure, currentTime: number) {
+    const curTimeInMeasure =
+      (currentTime - measure.startTime) % measure.duration;
+    const nextNote = measure.notes.find(
+      (note) => note.relativeTimestamp > curTimeInMeasure,
+    );
+    const timeUntilNextNote =
+      (nextNote ? nextNote.relativeTimestamp : measure.duration) -
+      curTimeInMeasure;
+
+    if (timeUntilNextNote < this.lookaheadTime) {
+      const followingNoteIndex = measure.rhythm.nextNote(
+        nextNote?.note ?? 0,
+      ).index;
+      return [
+        measure.notes[followingNoteIndex],
+        timeUntilNextNote + (nextNote ?? measure.notes[0]).duration,
+      ] as const;
+    }
+
+    return [nextNote, timeUntilNextNote] as const;
   }
 
   public getNoteDuration(note: Note): number {
@@ -313,7 +346,6 @@ export type MetronomeMeasureStartedEvent = {
   startingNoteIndex: number;
   timeUntilExpectedStart: number;
   now: number;
-  documentTimelineCurrentTime: CSSNumberish | null;
 };
 export type MetronomeStopEvent = {
   type: "stop";
