@@ -33,14 +33,13 @@ jobs:
         run: |
           npm ci
           npm run build
-          tar -cvf dist.tar ./dist
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          name: "dist.tar"
-          path: "./"
+          name: "dist"
+          path: "./dist"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
