@@ -49,7 +49,7 @@ export function ThemedSlider({ ...props }: ISettings) {
 
     pathThickness: 8,
     pathBorder: 0,
-    pathRadius: 186,
+    pathRadius: 200,
 
     pointerBorder: 0,
     pointerRadius: 12,

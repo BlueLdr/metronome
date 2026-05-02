@@ -9,7 +9,7 @@ import TouchAppRounded from "@mui/icons-material/TouchAppRounded";
 
 export function Controls() {
   return (
-    <Grid container direction="column" gap={4}>
+    <Grid container direction="column" gap={4} gridArea="bottom">
       <StartStopButton />
       <TapTempoButton
         color="secondary"

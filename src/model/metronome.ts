@@ -17,7 +17,7 @@ export interface MetronomeOptions {
   setPlaying: (value: boolean) => void;
 }
 
-interface ScheduledMeasure extends MeasureWithSources {
+export interface ScheduledMeasure extends MeasureWithSources {
   startTime: number;
 }
 
@@ -36,6 +36,7 @@ export class Metronome {
     this.listeners = {
       "note-played": new Set(),
       "measure-started": new Set(),
+      stop: new Set(),
     };
 
     requestIdleCallback(() => {
@@ -113,8 +114,11 @@ export class Metronome {
       .waitForInit()
       .then(() => this.player.getSourcesForMeasure(measure));
 
+    const currentTime = this.currentTime;
     const now = Date.now();
-    const zeroTime = startTime ?? this.currentTime + 10;
+    const documentTimelineCurrentTime = document.timeline.currentTime;
+
+    const zeroTime = startTime ?? currentTime + 10;
     const offset =
       scheduledMeasure.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
     scheduledMeasure.notes.forEach((note) => {
@@ -138,6 +142,11 @@ export class Metronome {
       measure: this.scheduledMeasure,
       startingNoteIndex,
       now,
+      documentTimelineCurrentTime,
+      timeUntilExpectedStart: Math.max(
+        zeroTime - currentTime - this.frameTime,
+        0,
+      ),
     });
   }
 
@@ -165,6 +174,7 @@ export class Metronome {
     this.nextNoteIndexAfterTempoChange = undefined;
     this.scheduledMeasure = undefined;
     this.playing = false;
+    this.dispatchEvent({ type: "stop" });
   }
 
   public setBpm(bpm: number) {
@@ -228,7 +238,7 @@ export class Metronome {
 
     this.scheduleMeasure(
       this.scheduledMeasure.rhythm,
-      Math.max(e.timestamp, this.currentTime),
+      Math.max(e.timestamp + this.frameTime, this.currentTime),
       this.nextNoteIndexAfterTempoChange,
     );
   }
@@ -301,12 +311,18 @@ export type MetronomeMeasureStartedEvent = {
   type: "measure-started";
   measure: ScheduledMeasure;
   startingNoteIndex: number;
+  timeUntilExpectedStart: number;
   now: number;
+  documentTimelineCurrentTime: CSSNumberish | null;
+};
+export type MetronomeStopEvent = {
+  type: "stop";
 };
 
 export type MetronomeEvent =
   | MetronomeNotePlayedEvent
-  | MetronomeMeasureStartedEvent;
+  | MetronomeMeasureStartedEvent
+  | MetronomeStopEvent;
 
 export type MetronomeEventType = MetronomeEvent["type"];
 
