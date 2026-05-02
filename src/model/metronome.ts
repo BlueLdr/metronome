@@ -1,144 +1,144 @@
-import { MINUTE } from "~/utils/constants";
-import { TickWorkerApi } from "~/workers/tick";
+import { getScreenFrameTime } from "~/utils/helpers";
+import { TimerWorkerApi } from "~/workers/timer";
 
 import { Note } from "./note";
 import { Player } from "./player";
 import { Rhythm } from "./rhythm";
 
-//================================================
-
-const DEFAULT_PRECISION = 4;
-// const DEFAULT_TOLERANCE = 10;
-const MIN_TICK_INTERVAL = 10; // ms
+import type { TimerWorkerTimeoutEvent } from "~/workers/timer";
+import type { MeasureWithSources } from "./measure";
+import type { INote } from "./note";
 
 //================================================
-
-interface MetronomeTimingState {
-  lastTickTimestamp: number;
-  lastNoteTimestamp: number;
-  lastNoteDuration: number;
-  // elapsedTicksSinceLastBeat: number;
-  // drift: RollingAverage;
-}
-
-interface MetronomeRhythmState {
-  rhythm: Rhythm;
-  nextNoteIndex: number;
-  nextNote: Note;
-}
 
 export interface MetronomeOptions {
-  precision?: number;
-  tolerance?: number;
-  scheduleAheadTickCount?: number;
   bpm: number;
   beatDivision: number;
   setPlaying: (value: boolean) => void;
 }
 
-interface ScheduledNote {
-  timestamp: number;
-  source: AudioBufferSourceNode;
+interface ScheduledMeasure extends MeasureWithSources {
+  startTime: number;
 }
 
 //================================================
 
 export class Metronome {
   constructor(options: MetronomeOptions) {
-    const {
-      precision = DEFAULT_PRECISION,
-      // tolerance = DEFAULT_TOLERANCE,
-      scheduleAheadTickCount = 2 * precision,
-      bpm,
-      beatDivision = 4,
-      setPlaying,
-    } = options;
-    this.precision = precision;
-    // this.tolerance = tolerance;
-    this.scheduleAheadTickCount = scheduleAheadTickCount;
+    const { bpm, beatDivision = 4, setPlaying } = options;
     this.bpm = bpm;
     this._beatDivision = beatDivision;
     this.setPlaying = setPlaying;
+    this._playing = false;
     this.player = new Player();
-    this.ticker = new TickWorkerApi();
-    this.ticker.on("tick", () => this.tick());
-    this.scheduledNoteQueue = new Map();
+    this.timer = new TimerWorkerApi();
+    this.timer.on("timeout", (e) => this.onTimeout(e));
+    this.listeners = {
+      "note-played": new Set(),
+      "measure-started": new Set(),
+    };
+
+    requestIdleCallback(() => {
+      getScreenFrameTime().then((value) => {
+        this.frameTime = value;
+      });
+    });
   }
 
   private player: Player;
   private bpm: number;
   private _beatDivision: number;
 
-  private precision: number;
-  // private tolerance: number;
-  private scheduleAheadTickCount: number;
-
-  private timingState: MetronomeTimingState | undefined = undefined;
-  private rhythmState: MetronomeRhythmState | undefined = undefined;
   private setPlaying: (value: boolean) => void;
-  private scheduledNoteQueue: Map<Note, ScheduledNote>;
+  private frame: number | null = null;
+  private frameTime: number = 1000 / 60;
+  private nextNoteIndexAfterTempoChange: number | undefined = undefined;
 
-  private ticker: TickWorkerApi;
-  private get tickInterval() {
-    return Math.max(MINUTE / this.bpm / this.precision, MIN_TICK_INTERVAL);
+  private _scheduledMeasure: ScheduledMeasure | undefined = undefined;
+  private get scheduledMeasure() {
+    return this._scheduledMeasure;
   }
+  private set scheduledMeasure(value: ScheduledMeasure | undefined) {
+    if (this._scheduledMeasure) {
+      this._scheduledMeasure.notes.forEach((note) => {
+        note.source.stop();
+      });
+      if (this.frame) {
+        cancelAnimationFrame(this.frame);
+      }
+    }
+    this._scheduledMeasure = value;
+  }
+
+  private _playing: boolean;
+  public get playing() {
+    return this._playing;
+  }
+  private set playing(value: boolean) {
+    this._playing = value;
+    this.setPlaying(value);
+  }
+
+  private listeners: {
+    [Type in MetronomeEventType]: Set<MetronomeEventListener<Type>>;
+  };
+
+  private timer: TimerWorkerApi;
+  // private ticker: TickWorkerApi;
+  // private get tickInterval() {
+  //   return Math.max(MINUTE / this.bpm / this.precision, MIN_TICK_INTERVAL);
+  // }
   public get currentTime() {
-    return this.player.audioContext.currentTime * 1000;
+    return (this.player.audioContext?.currentTime ?? 0) * 1000;
   }
 
-  private tick() {
-    const curState = this.timingState;
-    if (!curState) {
-      throw new Error(`Called "tick" without starting the metronome`);
-    }
-    const currentTime = this.currentTime;
-    const { lastNoteTimestamp, lastNoteDuration } = curState;
-
-    const lookAheadInterval = this.tickInterval * this.scheduleAheadTickCount;
-    const rhythm = this.rhythmState.rhythm;
-
-    let lookAheadTimestamp = lastNoteTimestamp + lastNoteDuration;
-    for (let i = 0; i < rhythm.notes.length; i++) {
-      const index = (this.rhythmState.nextNoteIndex + i) % rhythm.notes.length;
-      const note = rhythm.notes[index];
-      if (!note) {
-        continue;
+  private async scheduleMeasure(
+    rhythm: Rhythm,
+    startTime?: number,
+    startingNoteIndex = 0,
+  ) {
+    if (this.scheduledMeasure) {
+      if (!startTime) {
+        console.warn(
+          "[Player] Clearing scheduled measure to schedule a new measure",
+        );
       }
-      if (lookAheadTimestamp <= currentTime + lookAheadInterval) {
-        if (!this.scheduledNoteQueue.has(note)) {
-          const noteTimestamp = lookAheadTimestamp;
-          this.player.scheduleNote(note, noteTimestamp).then((source) => {
-            this.scheduledNoteQueue.set(note, {
-              timestamp: noteTimestamp,
-              source,
-            });
-          });
-        }
-        lookAheadTimestamp += this.getNoteDuration(note);
-      } else {
-        break;
-      }
+      this.scheduledMeasure = undefined;
     }
+    const measure = rhythm.getMeasure({
+      bpm: this.bpm,
+      beatDivision: this._beatDivision,
+    });
+    const scheduledMeasure = await rhythm
+      .waitForInit()
+      .then(() => this.player.getSourcesForMeasure(measure));
 
-    // remove notes that have been played from the queue
-    Array.from(this.scheduledNoteQueue.entries()).forEach(
-      ([note, { timestamp }]) => {
-        if (this.currentTime >= timestamp) {
-          this.timingState = {
-            lastTickTimestamp: currentTime,
-            lastNoteTimestamp: timestamp,
-            lastNoteDuration: this.getNoteDuration(note),
-          };
-          const nextNote = this.rhythmState.rhythm.nextNote(note);
-          this.rhythmState = {
-            nextNote,
-            nextNoteIndex: nextNote.index,
-            rhythm: this.rhythmState.rhythm,
-          };
-          this.scheduledNoteQueue.delete(note);
-        }
-      },
-    );
+    const now = Date.now();
+    const zeroTime = startTime ?? this.currentTime + 10;
+    const offset =
+      scheduledMeasure.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
+    scheduledMeasure.notes.forEach((note) => {
+      const startTimeOffsetRaw = note.relativeTimestamp - offset;
+      const startTimeOffset =
+        startTimeOffsetRaw < 0
+          ? startTimeOffsetRaw + scheduledMeasure.duration
+          : startTimeOffsetRaw;
+      note.source.start((zeroTime + startTimeOffset) / 1000);
+      note.source.loop = true;
+      note.source.loopStart = 0;
+      note.source.loopEnd = scheduledMeasure.duration / 1000;
+    });
+
+    this.scheduledMeasure = {
+      ...scheduledMeasure,
+      startTime: zeroTime - offset,
+    };
+    this.dispatchEvent({
+      type: "measure-started",
+      measure: this.scheduledMeasure,
+      startingNoteIndex,
+      now,
+    });
   }
 
   public start(rhythm: Rhythm) {
@@ -146,154 +146,91 @@ export class Metronome {
       this.player.init();
     }
 
+    this.timer.init({
+      now: Date.now(),
+      timestamp: this.currentTime,
+    });
     rhythm.waitForInit().then(() => {
-      this.scheduledNoteQueue.clear();
-      const currentTime = this.currentTime;
-
-      this.setPlaying(true);
-      this.player.scheduleNote(rhythm.notes[0], currentTime);
-      this.rhythmState = {
-        rhythm,
-        nextNoteIndex: 1,
-        nextNote: rhythm.notes[1],
-      };
-      this.timingState = {
-        lastTickTimestamp: currentTime,
-        lastNoteDuration: this.getNoteDuration(rhythm.notes[0]),
-        lastNoteTimestamp: currentTime,
-        // elapsedTicksSinceLastBeat: 0,
-      };
+      this.scheduleMeasure(rhythm);
       this.player.start();
-      this.ticker.start({ interval: this.tickInterval });
+      this.playing = true;
     });
   }
 
-  /*  private async tick() {
-    const curState = this.timingState;
-    if (!curState) {
-      throw new Error(`Called "tick" without starting the metronome`);
-    }
-
-    const { lastTickTimestamp, nextBeatTimestamp } = curState;
-    const now = Date.now();
-
-    let timeUntilNextBeat = nextBeatTimestamp - now;
-    if (timeUntilNextBeat <= this.tolerance) {
-      this.timingState = await this.executeBeat();
-      timeUntilNextBeat = this.timingState.lastBeatInterval;
-      if (lastTickTimestamp > 0) {
-        console.log(
-          "Average drift is: ",
-          curState.drift.next(now - nextBeatTimestamp),
-        );
-      }
-    } else {
-      curState.elapsedTicksSinceLastBeat += 1;
-      curState.lastTickTimestamp = now;
-    }
-    let drift = 0;
-    // if (curState.drift.count > DRIFT_SAMPLE_SIZE / 3) {
-    //   drift = curState.drift.value;
-    // }
-
-    const tickInterval =
-      (1 / this.precision) * this.timingState.lastBeatInterval;
-    this.timeout = setTimeout(
-      () => this.tick(),
-      Math.min(tickInterval, timeUntilNextBeat) - drift,
-    );
-
-    // difference between current moment and the moment this tick was *expected* to happen
-    // add last drift value to current moment to get the time it would've been if we hadn't compensated for drift
-    // if (lastTickTimestamp > 0) {
-    //   curState.drift.next(now + drift - (lastTickTimestamp + tickInterval));
-    // }
-  }
-
-  private async executeBeat(): Promise<MetronomeTimingState> {
-    if (!this.rhythmState) {
-      throw new Error(`Called "executeBeat" without starting the metronome`);
-    }
-    const beat = this.rhythmState?.nextBeat;
-    const timestamp = await this.player.playBeat(beat);
-
-    const lastBeatInterval = this.getBeatInterval(beat);
-    const nextBeat = this.rhythmState.rhythm.nextBeat(beat);
-
-    // get next beat
-    //   calculate time until next beat
-    //   store
-    //      last beat timestamp
-    //      next beat timestamp
-    //      next beat interval
-
-    this.rhythmState = {
-      rhythm: this.rhythmState.rhythm,
-      nextBeat,
-      nextBeatIndex: nextBeat.index,
-    };
-    return {
-      lastBeatTimestamp: timestamp,
-      nextBeatTimestamp: timestamp + lastBeatInterval,
-      lastBeatInterval: lastBeatInterval,
-      elapsedTicksSinceLastBeat: 0,
-      lastTickTimestamp: timestamp,
-      drift: this.timingState.drift,
-    };
-  }
-
-  public start(rhythm: Rhythm) {
-    this.timingState = {
-      lastTickTimestamp: 0,
-      lastBeatTimestamp: 0,
-      nextBeatTimestamp: 0,
-      lastBeatInterval: 0,
-      elapsedTicksSinceLastBeat: 0,
-      drift: new RollingAverage(DRIFT_SAMPLE_SIZE, 0),
-    };
-    this.rhythmState = {
-      rhythm,
-      nextBeat: rhythm.beats[0],
-      nextBeatIndex: 0,
-    };
-    this.setPlaying(true);
-    this.tick();
-  }
-
-  */
-
-  private clearQueue(clearAll = false) {
-    Array.from(this.scheduledNoteQueue.entries()).forEach(
-      ([note, { source, timestamp }]) => {
-        if (
-          clearAll ||
-          (this.timingState &&
-            timestamp > this.timingState.lastTickTimestamp + this.tickInterval)
-        )
-          source.stop();
-        this.scheduledNoteQueue.delete(note);
-      },
-    );
-  }
-
   public stop() {
+    cancelAnimationFrame(this.frame ?? -1);
+    this.frame = null;
     this.player.stop();
-    this.ticker.stop();
-    this.timingState = undefined;
-    this.rhythmState = undefined;
-    this.clearQueue(true);
-    this.setPlaying(false);
+    this.timer.stop();
+    this.nextNoteIndexAfterTempoChange = undefined;
+    this.scheduledMeasure = undefined;
+    this.playing = false;
   }
 
   public setBpm(bpm: number) {
     this.bpm = bpm;
-    this.clearQueue();
-    this.ticker.change({ interval: this.tickInterval });
+    if (this.playing) {
+      this.adjustTempo();
+    }
   }
   public setBeatDivision(beatDivision: number) {
     this._beatDivision = beatDivision;
-    this.clearQueue();
-    this.ticker.change({ interval: this.tickInterval });
+    if (this.playing) {
+      this.adjustTempo();
+    }
+  }
+
+  public adjustTempo() {
+    if (!this.scheduledMeasure) {
+      return;
+    }
+    const currentTime = this.currentTime;
+    const now = Date.now();
+    const curTimeInMeasure =
+      (currentTime - this.scheduledMeasure.startTime) %
+      this.scheduledMeasure.duration;
+    const nextNote = this.scheduledMeasure.notes.find(
+      (note) => note.relativeTimestamp > curTimeInMeasure,
+    );
+    const timeUntilNextNote =
+      (nextNote ? nextNote.relativeTimestamp : this.scheduledMeasure.duration) -
+      curTimeInMeasure;
+
+    if (timeUntilNextNote < 10) {
+      this.scheduleMeasure(
+        this.scheduledMeasure.rhythm,
+        this.currentTime,
+        nextNote?.note.index,
+      );
+    } else {
+      this.nextNoteIndexAfterTempoChange = nextNote?.note.index ?? 0;
+      this.timer.start({
+        timestamp: currentTime + timeUntilNextNote - this.frameTime,
+        now,
+        actionIfLate: "execute",
+        id: this.getTimeoutId(),
+      });
+    }
+  }
+
+  private getTimeoutId() {
+    return `${this.bpm}${this._beatDivision}${this.nextNoteIndexAfterTempoChange}`;
+  }
+
+  private onTimeout(e: TimerWorkerTimeoutEvent) {
+    if (
+      e.id !== this.getTimeoutId() ||
+      !this.scheduledMeasure ||
+      this.nextNoteIndexAfterTempoChange == null
+    ) {
+      return;
+    }
+
+    this.scheduleMeasure(
+      this.scheduledMeasure.rhythm,
+      Math.max(e.timestamp, this.currentTime),
+      this.nextNoteIndexAfterTempoChange,
+    );
   }
 
   public getNoteDuration(note: Note): number {
@@ -307,12 +244,72 @@ export class Metronome {
   }
   setVolume(value: number) {
     this.player.volume = value;
+    if (this.scheduledMeasure) {
+      this.scheduledMeasure.notes.forEach((note) => {
+        note.note.onChangePlayerVolume(value);
+      });
+    }
   }
 
-  get on() {
-    return this.ticker.on;
+  private dispatchEvent<Type extends MetronomeEventType>(
+    event: MetronomeEvent & { type: Type },
+  ) {
+    if (!(event.type in this.listeners)) {
+      return;
+    }
+    this.listeners[event.type].forEach((callback) => {
+      callback(event);
+    });
   }
-  get off() {
-    return this.ticker.off;
+
+  on<Type extends MetronomeEventType>(
+    type: Type,
+    listener: MetronomeEventListener<Type>,
+  ) {
+    if (!(type in this.listeners)) {
+      console.error(
+        `[Metronome] Tried to add listener for invalid Metronome event type "${type}"`,
+      );
+      return;
+    }
+    this.listeners[type].add(listener);
+  }
+
+  off<Type extends MetronomeEventType>(
+    type: Type,
+    listener: MetronomeEventListener<Type>,
+  ) {
+    if (!(type in this.listeners)) {
+      console.error(
+        `[Metronome] Tried to remove listener for invalid Metronome event type "${type}"`,
+      );
+      return;
+    }
+    this.listeners[type].delete(listener);
   }
 }
+
+//================================================
+
+export type MetronomeNotePlayedEvent = {
+  type: "note-played";
+  note: INote;
+  index: number;
+  duration: number;
+};
+export type MetronomeMeasureStartedEvent = {
+  type: "measure-started";
+  measure: ScheduledMeasure;
+  startingNoteIndex: number;
+  now: number;
+};
+
+export type MetronomeEvent =
+  | MetronomeNotePlayedEvent
+  | MetronomeMeasureStartedEvent;
+
+export type MetronomeEventType = MetronomeEvent["type"];
+
+export type MetronomeEventListener<Type extends MetronomeEventType> = (
+  event: MetronomeEvent & { type: Type },
+) => void;

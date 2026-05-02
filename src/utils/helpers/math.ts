@@ -10,9 +10,13 @@ export const getBpmFromSliderPosition = (position: number) =>
 export const getSliderPositionFromBpm = (value: number) =>
   Math.log(value / a) / b;
 
-export const roundToNearestBpmPosition = (value: number) => {
-  let closest = tickValues[0];
-  for (const tick of tickValues) {
+export const roundToNearestDiscreteValue = (
+  value: number,
+  discreteValues: number[],
+) => {
+  const values = discreteValues.slice().sort();
+  let closest = values[0];
+  for (const tick of values) {
     if (Math.abs(tick - value) <= Math.abs(closest - value)) {
       closest = tick;
     } else {
@@ -21,3 +25,6 @@ export const roundToNearestBpmPosition = (value: number) => {
   }
   return closest;
 };
+
+export const roundToNearestBpmPosition = (value: number) =>
+  roundToNearestDiscreteValue(value, tickValues);

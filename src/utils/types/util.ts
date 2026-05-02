@@ -33,9 +33,9 @@ export type WithOverrides<T, O> = DistributiveOmit<T, keyof O> & O;
  *
  * See [distributive conditional types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#distributive-conditional-types) for more information
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type DistributiveOmit<
   T,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   K extends keyof T | keyof any,
 > = T extends unknown ? Omit<T, K> : T;
 export type DistributivePick<T, K extends keyof T> = T extends unknown

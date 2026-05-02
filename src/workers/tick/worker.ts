@@ -11,7 +11,7 @@ import type {
 //================================================
 
 class TickWorker {
-  interval: number;
+  interval: number | undefined;
   timer: number | undefined;
 
   start(options: TickWorkerStartRequestParameters) {
@@ -25,6 +25,9 @@ class TickWorker {
 
   tick(lastInterval: number) {
     const { interval } = this;
+    if (!interval) {
+      return;
+    }
     if (lastInterval !== interval) {
       clearInterval(this.timer);
       this.timer = setInterval(() => this.tick(interval), interval);

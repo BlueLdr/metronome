@@ -1,23 +1,24 @@
 import type {
-  TickWorkerChangeRequest,
-  TickWorkerEvent,
-  TickWorkerEventListener,
-  TickWorkerStartRequest,
-  TickWorkerStartRequestParameters,
-  TickWorkerStopRequest,
+  TimerWorkerEvent,
+  TimerWorkerEventListener,
+  TimerWorkerInitRequest,
+  TimerWorkerInitRequestParameters,
+  TimerWorkerStartRequest,
+  TimerWorkerStartRequestParameters,
+  TimerWorkerStopRequest,
 } from "./types";
 
 //================================================
 
-export class TickWorkerApi {
+export class TimerWorkerApi {
   constructor() {
     this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
       type: "module",
     });
     this.listeners = {
       start: new Set(),
-      change: new Set(),
-      tick: new Set(),
+      timeout: new Set(),
+      error: new Set(),
       stop: new Set(),
     };
 
@@ -26,45 +27,47 @@ export class TickWorkerApi {
 
   private worker: Worker;
   private listeners: {
-    [Type in TickWorkerEvent["type"]]: Set<TickWorkerEventListener<Type>>;
+    [Type in TimerWorkerEvent["type"]]: Set<TimerWorkerEventListener<Type>>;
   };
 
   //================================================
 
-  public start(parameters: TickWorkerStartRequestParameters) {
+  public init(parameters: TimerWorkerInitRequestParameters) {
+    this.worker.postMessage({
+      command: "init",
+      parameters,
+    } satisfies TimerWorkerInitRequest);
+  }
+
+  public start(parameters: TimerWorkerStartRequestParameters) {
     this.worker.postMessage({
       command: "start",
       parameters,
-    } satisfies TickWorkerStartRequest);
+    } satisfies TimerWorkerStartRequest);
   }
-  public change(parameters: TickWorkerChangeRequest["parameters"]) {
-    this.worker.postMessage({
-      command: "change",
-      parameters,
-    } satisfies TickWorkerChangeRequest);
-  }
+
   public stop() {
     this.worker.postMessage({
       command: "stop",
-    } satisfies TickWorkerStopRequest);
+    } satisfies TimerWorkerStopRequest);
   }
 
   //================================================
 
-  private isTickWorkerEvent = <T extends TickWorkerEvent["type"]>(
+  private isTimerWorkerEvent = <T extends TimerWorkerEvent["type"]>(
     event: MessageEvent,
   ): event is Omit<MessageEvent, "data"> & {
-    data: TickWorkerEvent & { type: T };
+    data: TimerWorkerEvent & { type: T };
   } =>
     !!event.data &&
     typeof event.data === "object" &&
     typeof event.data.type === "string" &&
     event.data.type in this.listeners;
 
-  private handleMessage = <T extends TickWorkerEvent["type"]>(
+  private handleMessage = <T extends TimerWorkerEvent["type"]>(
     event: MessageEvent,
   ) => {
-    if (!this.isTickWorkerEvent<T>(event)) {
+    if (!this.isTimerWorkerEvent<T>(event)) {
       return;
     }
     this.listeners[event.data.type].forEach((callback) => {
@@ -72,26 +75,26 @@ export class TickWorkerApi {
     });
   };
 
-  public on = <Type extends TickWorkerEvent["type"]>(
+  public on = <Type extends TimerWorkerEvent["type"]>(
     type: Type,
-    listener: TickWorkerEventListener<Type>,
+    listener: TimerWorkerEventListener<Type>,
   ) => {
     if (!(type in this.listeners)) {
       console.error(
-        `Tried to add listener for invalid TickWorker event type "${type}"`,
+        `Tried to add listener for invalid TimerWorker event type "${type}"`,
       );
       return;
     }
     this.listeners[type].add(listener);
   };
 
-  public off = <Type extends TickWorkerEvent["type"]>(
+  public off = <Type extends TimerWorkerEvent["type"]>(
     type: Type,
-    listener: TickWorkerEventListener<Type>,
+    listener: TimerWorkerEventListener<Type>,
   ) => {
     if (!(type in this.listeners)) {
       console.error(
-        `Tried to remove listener for invalid TickWorker event type "${type}"`,
+        `Tried to remove listener for invalid TimerWorker event type "${type}"`,
       );
       return;
     }

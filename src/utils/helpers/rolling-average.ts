@@ -3,7 +3,7 @@ export class RollingAverage {
     this.numbers = [firstNumber];
     this.sampleSize = sampleSize;
     this.sum = firstNumber;
-    this.avg = firstNumber
+    this.avg = firstNumber;
   }
   private numbers: number[];
   private sampleSize: number;
@@ -15,18 +15,22 @@ export class RollingAverage {
   }
 
   get count() {
-    return this.numbers.length
+    return this.numbers.length;
+  }
+
+  get data() {
+    return this.numbers.slice();
   }
 
   public next(nextNumber: number): number {
     if (this.numbers.length >= this.sampleSize) {
-      const oldNumber = this.numbers.shift()
+      const oldNumber = this.numbers.shift();
       if (oldNumber != null) {
-        this.sum -= oldNumber
+        this.sum -= oldNumber;
       }
     }
     this.numbers.push(nextNumber);
-    this.sum += nextNumber
+    this.sum += nextNumber;
     this.avg = this.sum / this.numbers.length;
 
     return this.avg;

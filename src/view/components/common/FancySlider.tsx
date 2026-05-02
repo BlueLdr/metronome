@@ -43,7 +43,7 @@ export function FancySlider({
         onAnimationEnd: () => popperRef.current?.update(),
         onTransitionEnd: () => popperRef.current?.update(),
       })
-    : props.slotProps.thumb;
+    : props.slotProps?.thumb;
 
   const slider = (
     <Slider

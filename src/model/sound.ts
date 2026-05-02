@@ -8,13 +8,8 @@ export class Sound implements ISound {
   constructor(name: string, url: string, onInit?: () => void) {
     this.name = name;
     this.url = url;
-    this.init().then(onInit);
-  }
-
-  private init() {
-    return fetch(this.url).then(async (response) => {
-      this.data = await response.arrayBuffer();
-    });
+    this.data = fetch(this.url).then((response) => response.arrayBuffer());
+    this.data.then(onInit);
   }
 
   public static clampVolume(value: number) {
@@ -24,9 +19,9 @@ export class Sound implements ISound {
   readonly url: string;
   readonly name: string;
   // pitch?: number;
-  private data: ArrayBuffer | undefined = undefined;
+  private data: Promise<ArrayBuffer>;
 
-  get arrayBuffer() {
+  async getArrayBuffer() {
     return this.data;
   }
 }

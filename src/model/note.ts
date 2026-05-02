@@ -25,22 +25,33 @@ export class Note implements INote {
   private gainNode: GainNode | undefined = undefined;
   private sourceBuffer: AudioBuffer | undefined = undefined;
 
-  public async getNoteSourceNode(audioContext: AudioContext, playerVolume = 1) {
+  public async getNoteSourceNode(
+    audioContext: AudioContext,
+    playerVolume = 1,
+    transformBuffer?: (buffer: AudioBuffer) => AudioBuffer,
+  ) {
+    const sourceBuffer = await this.getSourceBuffer(audioContext);
     if (!this.gainNode) {
       this.gainNode = audioContext.createGain();
     }
     this.gainNode.gain.value = Sound.clampVolume(playerVolume) * this.volume;
 
+    const source = audioContext.createBufferSource();
+    source.buffer = transformBuffer
+      ? transformBuffer(sourceBuffer)
+      : sourceBuffer;
+    source.connect(this.gainNode).connect(audioContext.destination);
+    return source;
+  }
+
+  public async getSourceBuffer(audioContext: AudioContext) {
     if (!this.sourceBuffer) {
       this.sourceBuffer = await audioContext.decodeAudioData(
-        this.sound.arrayBuffer.slice(),
+        (await this.sound.getArrayBuffer()).slice(),
       );
     }
 
-    const source = audioContext.createBufferSource();
-    source.buffer = this.sourceBuffer;
-    source.connect(this.gainNode).connect(audioContext.destination);
-    return source;
+    return this.sourceBuffer;
   }
 
   _volume: number;
@@ -51,6 +62,12 @@ export class Note implements INote {
   }
   set volume(value: number) {
     this._volume = Sound.clampVolume(value);
+  }
+
+  onChangePlayerVolume(newVolume: number) {
+    if (this.gainNode) {
+      this.gainNode.gain.value = Sound.clampVolume(newVolume) * this.volume;
+    }
   }
 
   getDurationInMs(bpm: number, beatDivision: number) {

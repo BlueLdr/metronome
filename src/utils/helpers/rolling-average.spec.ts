@@ -15,6 +15,8 @@ describe("RollingAverage", () => {
     expect(avg.next(6)).toBe(6);
     expect(avg.next(6)).toBe(6);
     expect(avg.next(6)).toBe(6);
+    expect(avg.data).toEqual([4, 6, 8, 6, 6, 6, 6, 6, 6, 6]);
     expect(avg.next(4)).toBe(6);
+    expect(avg.data).toEqual([6, 8, 6, 6, 6, 6, 6, 6, 6, 4]);
   });
 });
