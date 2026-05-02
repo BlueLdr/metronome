@@ -44,4 +44,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
         with:
-          artifact_name: "dist.tar"
+          artifact_name: "dist"
