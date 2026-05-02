@@ -7,7 +7,7 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "paths": {
-      "~/*": ["src/*"]
+      "~/*": ["./src/*"]
     },
 
     /* Bundler mode */
@@ -16,6 +16,7 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "strict": true,
     "jsx": "react-jsx",
 
     /* Linting */

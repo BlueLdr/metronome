@@ -1,5 +1,8 @@
+import { MINUTE } from "~/utils/constants";
+
 import { Note } from "./note";
 
+import type { ITempo, Measure } from "./measure";
 import type { INote } from "./note";
 
 //================================================
@@ -30,7 +33,9 @@ export class Rhythm implements IRhythm {
     const notes: Note[] = [];
     let i = 0;
     for (const def of defs) {
-      const resolveRef = { current: () => undefined };
+      const resolveRef: { current: (...args: undefined[]) => void } = {
+        current: () => undefined,
+      };
       const promise = new Promise<void>((resolve) => {
         resolveRef.current = resolve;
       });
@@ -54,7 +59,35 @@ export class Rhythm implements IRhythm {
     return this.notes[index + 1];
   }
 
-  getShortestBeatDuration() {
-    return Math.min(...this.notes.map((b) => b.interval));
+  getMeasureDuration(tempo: ITempo) {
+    const { bpm, beatDivision } = tempo;
+    const beatValueDuration = MINUTE / bpm;
+    const beatDuration =
+      beatValueDuration * (beatDivision / this.timeSignature.division);
+    return beatDuration * this.timeSignature.count;
+  }
+
+  getMeasure(tempo: ITempo) {
+    const duration = this.getMeasureDuration(tempo);
+    let curTime = 0;
+    const schedule: Measure = {
+      rhythm: this,
+      tempo,
+      duration,
+      notes: [],
+    };
+
+    for (const note of this.notes) {
+      const noteDuration = note.interval * duration;
+      schedule.notes.push({
+        note,
+        duration: noteDuration,
+        relativeTimestamp: curTime,
+      });
+
+      curTime += noteDuration;
+    }
+
+    return schedule;
   }
 }

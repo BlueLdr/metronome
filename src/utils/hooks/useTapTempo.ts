@@ -45,10 +45,13 @@ export const useTapTempo = (options: UseTapTempoOptions) => {
         clearTimeout(timer.current);
       }
       timer.current = setTimeout(() => {
+        if (!rollingAverage) {
+          return;
+        }
         onFinish?.(MINUTE / rollingAverage.value);
         setPreviousTime(undefined);
         setActive(false);
-        setRollingAverage(null);
+        setRollingAverage(undefined);
       }, 2000);
 
       const now = Date.now();

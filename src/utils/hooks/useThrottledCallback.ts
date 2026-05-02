@@ -3,9 +3,7 @@ import { useEffect, useMemo } from "react";
 
 //================================================
 
-export const useThrottledCallback = <
-  Func extends (...args: unknown[]) => unknown,
->(
+export const useThrottledCallback = <Func extends (...args: any[]) => unknown>(
   callback: Func,
   interval: number,
   deps: unknown[],

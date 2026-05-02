@@ -50,7 +50,7 @@ export function VolumeSlider({
           typeof value === "number"
             ? Sound.clampVolume(value)
             : value.map(Sound.clampVolume);
-        props.onChange(_, newValue, __);
+        props.onChange?.(_, newValue, __);
       }}
     />
   );

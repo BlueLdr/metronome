@@ -30,7 +30,7 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
     },
   );
 
-  const [volume, setVolume] = useStorageState(
+  const [volume, setVolume] = useStorageState<number>(
     VOLUME_STORAGE_KEY,
     DEFAULT_VOLUME,
   );

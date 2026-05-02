@@ -68,22 +68,12 @@ export function MetronomeSlider({
   const valueAsPosition = round(getSliderPositionFromBpm(value), 10);
   const handleChange = (pointers: ISettingsPointer[]) => {
     const newPosition = pointers[0].value;
-    if (typeof newPosition === "string") {
+    if (typeof newPosition !== "number") {
       return;
     }
 
     const newValue = getBpmFromSliderPosition(newPosition);
-    console.log(
-      `newPosition,
-      newValue,
-      valueAsPosition,
-      value,
-    : `,
-      newPosition,
-      newValue,
-      valueAsPosition,
-      value,
-    );
+
     if (newValue !== value) {
       onChange(newValue);
     } else if (valueAsPosition < newPosition) {
