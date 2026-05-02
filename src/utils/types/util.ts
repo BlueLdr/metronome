@@ -1,3 +1,9 @@
+export type UnionToIntersection<U> = (
+  U extends any ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never;
+
 export type PropsOfType<T extends object, U> = {
   [K in keyof T]: T[K] extends U ? K : never;
 }[keyof T];

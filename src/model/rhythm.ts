@@ -2,6 +2,7 @@ import { MINUTE } from "~/utils/constants";
 
 import { Note } from "./note";
 
+import type { NoteDivision } from "~/utils/types";
 import type { ITempo, Measure } from "./measure";
 import type { INote } from "./note";
 
@@ -9,7 +10,7 @@ import type { INote } from "./note";
 
 export interface TimeSignature {
   count: number;
-  division: number;
+  division: NoteDivision;
 }
 
 export interface IRhythm {
@@ -69,6 +70,8 @@ export class Rhythm implements IRhythm {
 
   getMeasure(tempo: ITempo) {
     const duration = this.getMeasureDuration(tempo);
+    const wholeNoteDuration = (MINUTE / tempo.bpm) * tempo.beatDivision;
+
     let curTime = 0;
     const schedule: Measure = {
       rhythm: this,
@@ -78,7 +81,7 @@ export class Rhythm implements IRhythm {
     };
 
     for (const note of this.notes) {
-      const noteDuration = note.interval * duration;
+      const noteDuration = note.interval * wholeNoteDuration;
       schedule.notes.push({
         note,
         duration: noteDuration,

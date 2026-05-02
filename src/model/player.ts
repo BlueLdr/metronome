@@ -134,6 +134,10 @@ export class Player {
 
       if (failed.length > 0) {
         notes.forEach((note) => note.source.stop());
+        console.error(
+          `[Player] Some notes in the measure failed to initialize source nodes`,
+          failed,
+        );
         return Promise.reject(
           new Error(
             "[Player] Some notes in the measure failed to initialize source nodes",

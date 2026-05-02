@@ -1,3 +1,22 @@
+@font-face {
+    font-family: 'Bravura Numbers';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(/Bravura-Numbers.otf) format('opentype');
+}
+
+@font-face {
+    font-family: 'Bravura Text';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
+    src: url(/Bravura.otf) format('opentype'),
+         url(/Bravura.woff2) format('woff2'),
+         url(/Bravura.woff) format('woff');
+    /*descent-override: 25%;*/
+}
+
 /* Copied from the generated stylesheet from google font api, and added `descent-override` */
 
 /* latin-ext */

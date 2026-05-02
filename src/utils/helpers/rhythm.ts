@@ -1,9 +1,17 @@
-import type { IRhythm, IBeat, ScheduledMeasure } from "~/model";
+import { Rhythm } from "~/model";
+import { DEFAULT_SOUND, DEFAULT_VOLUME_SETTINGS } from "~/utils/constants";
+
+import { isInt } from "./math";
+
+import type {
+  IRhythm,
+  IBeat,
+  ScheduledMeasure,
+  TimeSignature,
+  INote,
+} from "~/model";
 
 //================================================
-
-// account for stupid js rounding
-const isInt = (num: number) => Math.round(num * 1e6) / 1e6 === Math.round(num);
 
 export const calculateBeats = (rhythm: IRhythm): (IBeat | undefined)[] => {
   let currentBeat: IBeat;
@@ -47,4 +55,31 @@ export const getNoteStartTimeOffsetInScheduledMeasure = (
   return startTimeOffsetRaw < 0
     ? startTimeOffsetRaw + measure.duration
     : startTimeOffsetRaw;
+};
+
+export const createRhythm = (
+  timeSignature: TimeSignature,
+  subdivisions = 1,
+  volumeSettings = DEFAULT_VOLUME_SETTINGS,
+) => {
+  const newNoteCount = subdivisions * timeSignature.count;
+  const newNotes: INote[] = [];
+  for (let i = 0; i < newNoteCount; i++) {
+    const noteInterval = 1 / timeSignature.division / subdivisions;
+    const volume =
+      volumeSettings[
+        i === 0
+          ? "firstBeatVolume"
+          : i % subdivisions === 0
+            ? "beatVolume"
+            : "subdivisionVolume"
+      ];
+    newNotes.push({
+      interval: noteInterval,
+      volume,
+      sound: DEFAULT_SOUND,
+    });
+  }
+
+  return new Rhythm(timeSignature, newNotes);
 };

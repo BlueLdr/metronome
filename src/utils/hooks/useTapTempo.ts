@@ -2,8 +2,9 @@ import { useCallback, useRef, useState } from "react";
 
 import { DEFAULT_TAP_TEMPO_SAMPLE_SIZE, MINUTE } from "~/utils/constants";
 import { RollingAverage } from "~/utils/helpers";
-import { useValueRef } from "~/utils/hooks";
-import { useAppState } from "~/view/context";
+
+import { useValueRef } from "./data";
+import { useAppState } from "./useAppState";
 
 //================================================
 

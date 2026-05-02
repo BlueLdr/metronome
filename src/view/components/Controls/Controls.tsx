@@ -1,24 +1,62 @@
-import { MasterVolumeSlider } from "./MasterVolumeSlider";
-import { StartStopButton } from "./StartStopButton";
-import { TapTempoButton } from "./TapTempoButton";
+import { useAppSubdivisonsState } from "~/utils/hooks/useAppState";
+import {
+  SubdivisionVisualizer,
+  Visualizer,
+} from "~/view/components/Visualizer";
+
+import { SubdivisionSelector } from "./Rhythm/SubdivisionSelector";
 
 import Grid from "@mui/material/Grid";
-import TouchAppRounded from "@mui/icons-material/TouchAppRounded";
 
 //================================================
 
 export function Controls() {
+  const [subdivisions, setSubdivisions, state] = useAppSubdivisonsState();
   return (
-    <Grid container direction="column" gap={4} gridArea="bottom">
-      <StartStopButton />
-      <TapTempoButton
-        color="secondary"
-        startIcon={<TouchAppRounded />}
-        sx={{
-          minWidth: (theme) => theme.spacing(44),
-        }}
-      />
-      <MasterVolumeSlider />
+    <Grid
+      container
+      direction="column"
+      gap={8}
+      gridArea="bottom"
+      alignSelf="flex-start"
+      gridColumn="span 3"
+      alignItems="center"
+    >
+      <Visualizer size="large" subdivisions="combined" />
+      <Grid
+        container
+        gap={8}
+        display="grid"
+        gridTemplateColumns="minmax(0, 1fr) minmax(0, 1fr)"
+        width={(theme) => `min(100%, ${theme.spacing(150)})`}
+      >
+        <Grid container justifyContent="flex-end">
+          <Grid width="fit-content">
+            <SubdivisionSelector
+              onValueChange={setSubdivisions}
+              value={subdivisions}
+              inputProps={{
+                sx: {
+                  maxWidth: (theme) => theme.spacing(48),
+                },
+              }}
+            />
+          </Grid>
+        </Grid>
+        <Grid container justifyContent="center">
+          <Grid
+            sx={{
+              maxWidth: (theme) => theme.spacing(70),
+              transform: "translateY(25%)",
+            }}
+          >
+            <SubdivisionVisualizer
+              timeSignatureDivision={state.rhythm.timeSignature.division}
+              value={subdivisions}
+            />
+          </Grid>
+        </Grid>
+      </Grid>
     </Grid>
   );
 }

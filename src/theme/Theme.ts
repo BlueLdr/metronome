@@ -3,7 +3,7 @@ import {
   unstable_createMuiStrictModeTheme,
 } from "@mui/material/styles";
 
-import ExpandMore from "@mui/icons-material/ExpandMore";
+import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 
 //================================================
 

@@ -2,9 +2,9 @@ import { Sound } from "~/model";
 import { FancySlider } from "~/view/components/common";
 
 import Typography from "@mui/material/Typography";
-import VolumeUp from "@mui/icons-material/VolumeUp";
-import VolumeDown from "@mui/icons-material/VolumeDown";
-import VolumeMute from "@mui/icons-material/VolumeMute";
+import VolumeUp from "@mui/icons-material/VolumeUpRounded";
+import VolumeDown from "@mui/icons-material/VolumeDownRounded";
+import VolumeMute from "@mui/icons-material/VolumeMuteRounded";
 
 import type { FancySliderProps } from "~/view/components/common";
 import type { DistributiveOmit } from "~/utils/types";

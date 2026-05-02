@@ -1,5 +1,6 @@
 import { TEMP_CLICK_SOUND_URL } from "./common";
 
+import type { VolumeSettings } from "~/utils/types";
 import type { IRhythm, ISound } from "~/model";
 
 //================================================
@@ -17,6 +18,12 @@ export const DEFAULT_RHYTHM: IRhythm = {
     { sound: DEFAULT_SOUND, volume: 0.25, interval: 0.25 },
     { sound: DEFAULT_SOUND, volume: 0.25, interval: 0.25 },
   ],
+};
+
+export const DEFAULT_VOLUME_SETTINGS: VolumeSettings = {
+  firstBeatVolume: 1,
+  beatVolume: 0.25,
+  subdivisionVolume: 0.125,
 };
 
 export const DEFAULT_BPM = 80;

@@ -4,8 +4,8 @@ import { alpha, styled } from "@mui/material/styles";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
 import FilledInput from "@mui/material/FilledInput";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/AddRounded";
+import RemoveIcon from "@mui/icons-material/RemoveRounded";
 
 import type { NumberFieldRootProps } from "@base-ui/react/number-field";
 
@@ -47,7 +47,7 @@ export function SliderNumberInput(props: SliderNumberInputProps) {
                   ...inputProps,
                   sx: {
                     textAlign: "center",
-                    fontFamily: "var(--font-main-bpm)",
+                    fontFamily: "var(--font-number-input)",
                     fontVariationSettings: `"wght" 450, "GRAD" 72, "wdth" 105`,
                     letterSpacing: "4px",
                     fontSize: 92,

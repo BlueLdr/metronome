@@ -63,23 +63,20 @@ export function FancySlider({
   tooltipSide =
     (tooltipSide ?? props.orientation === "vertical") ? "right" : "top";
 
+  const startIcon = props.orientation === "vertical" ? iconMax : iconMin;
+  const endIcon = props.orientation === "vertical" ? iconMin : iconMax;
+
   return (
     <Stack
       direction={props.orientation === "vertical" ? "column" : "row"}
-      gap={props.size === "small" ? 1 : 2}
+      gap={
+        (props.size === "small" ? 1 : 2) *
+        (props.orientation === "vertical" ? 2 : 1)
+      }
       alignItems="center"
       justifyContent="center"
     >
-      {iconMin && (
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          fontSize={props.size}
-        >
-          {iconMin}
-        </Box>
-      )}
+      {startIcon && <Box fontSize={props.size}>{startIcon}</Box>}
       {tooltip ? (
         <Tooltip
           arrow
@@ -102,7 +99,7 @@ export function FancySlider({
       ) : (
         slider
       )}
-      {iconMax && <Box fontSize={props.size}>{iconMax}</Box>}
+      {endIcon && <Box fontSize={props.size}>{endIcon}</Box>}
     </Stack>
   );
 }
