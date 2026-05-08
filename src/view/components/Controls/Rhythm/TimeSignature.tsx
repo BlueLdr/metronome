@@ -12,7 +12,6 @@ import type { TimeSignature } from "~/model";
 const TIME_SIGNATURE_DIVISIONS = NOTE_DIVISIONS.filter((n) => n <= 32).sort(
   (a, b) => (a > b ? 1 : -1),
 );
-console.log(`TIME_SIGNATURE_DIVISIONS: `, TIME_SIGNATURE_DIVISIONS);
 
 type TimeSignatureNumberInputProps = NumberFieldRootProps;
 

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { Metronome, Rhythm, Sound } from "~/model";
+import { Metronome, Rhythm } from "~/model";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
   BPM_CHANGE_THROTTLE_INTERVAL,
@@ -10,35 +10,44 @@ import {
   DEFAULT_RHYTHM,
   DEFAULT_VOLUME,
   VOLUME_CHANGE_THROTTLE_INTERVAL,
-  VOLUME_STORAGE_KEY,
 } from "~/utils/constants";
-import { useStorageState, useThrottledUpdate } from "~/utils/hooks";
+import { useStorageReducer, useThrottledUpdate } from "~/utils/hooks";
+import { appMainStateReducer } from "~/view/context/app/reducer";
 
 import { AppContext } from "./context";
 
-import type { IRhythm } from "~/model";
-import type { AppMainState } from "~/utils/types";
+import type { TimeSignature, IRhythm } from "~/model";
 import type { AppContextState } from "./context";
 
 //================================================
 
 export function AppContextProvider({ children }: React.PropsWithChildren) {
-  const [state, setState] = useStorageState<AppMainState>(
+  const [state, dispatch] = useStorageReducer(
     APP_MAIN_STATE_STORAGE_KEY,
     DEFAULT_MAIN_STATE,
+    appMainStateReducer,
   );
 
-  const [volume, setVolume_] = useStorageState<number>(
-    VOLUME_STORAGE_KEY,
-    DEFAULT_VOLUME,
+  const setBpm = useCallback(
+    (value: React.SetStateAction<number>) =>
+      dispatch({ type: "set-bpm", parameters: { value } }),
+    [dispatch],
+  );
+  const setTimeSignature = useCallback(
+    (value: React.SetStateAction<TimeSignature>) =>
+      dispatch({ type: "set-time-signature", parameters: { value } }),
+    [dispatch],
+  );
+  const setSubdivisions = useCallback(
+    (value: React.SetStateAction<number>) =>
+      dispatch({ type: "set-subdivisions", parameters: { value } }),
+    [dispatch],
   );
 
   const setVolume = useCallback(
     (value: React.SetStateAction<number>) =>
-      setVolume_((prev) =>
-        Sound.clampVolume(typeof value === "number" ? value : value(prev)),
-      ),
-    [setVolume_],
+      dispatch({ type: "set-volume", parameters: { value } }),
+    [dispatch],
   );
 
   const [playing, setPlaying] = useState(false);
@@ -71,7 +80,7 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
     (value: number) => metronome.setVolume(value),
     VOLUME_CHANGE_THROTTLE_INTERVAL,
     [metronome],
-    volume ?? DEFAULT_VOLUME,
+    state.volume ?? DEFAULT_VOLUME,
   );
 
   useThrottledUpdate(
@@ -85,14 +94,23 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
   const value = useMemo<AppContextState>(
     () => ({
       state,
-      setState,
-      volume,
-      setVolume,
       playing,
-      setPlaying,
       metronome,
+
+      setBpm,
+      setTimeSignature,
+      setSubdivisions,
+      setVolume,
     }),
-    [playing, setState, setVolume, state, volume, metronome],
+    [
+      state,
+      playing,
+      metronome,
+      setBpm,
+      setTimeSignature,
+      setSubdivisions,
+      setVolume,
+    ],
   );
 
   return <AppContext value={value}>{children}</AppContext>;

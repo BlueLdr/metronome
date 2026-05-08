@@ -1,5 +1,5 @@
 import { VolumeSlider } from "~/view/components/common";
-import { useAppState } from "~/utils/hooks";
+import { useAppState } from "~/view/context";
 
 import type { VolumeSliderProps } from "~/view/components/common";
 import type { DistributiveOmit } from "~/utils/types";
@@ -12,12 +12,12 @@ export type MasterVolumeSliderProps = DistributiveOmit<
 >;
 
 export function MasterVolumeSlider(props: MasterVolumeSliderProps) {
-  const { volume, setVolume } = useAppState();
+  const { state, setVolume } = useAppState();
 
   return (
     <VolumeSlider
       {...props}
-      value={volume}
+      value={state.volume}
       onChange={(_, value) => {
         if (typeof value === "number") {
           setVolume(value);

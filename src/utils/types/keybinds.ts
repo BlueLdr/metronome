@@ -2,7 +2,7 @@ export type Keybind = Pick<KeyboardEvent, "key"> &
   Partial<Pick<KeyboardEvent, "altKey" | "ctrlKey" | "metaKey" | "shiftKey">>;
 
 export type KeybindSettings = {
-  [K in KeybindAction]: Keybind | undefined;
+  [K in KeybindAction]: Keybind[];
 };
 
 export enum KeybindAction {

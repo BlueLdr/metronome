@@ -1,12 +1,15 @@
-import { useAppTimeSignatureState } from "~/utils/hooks/useAppState";
+import { useAppState } from "~/view/context";
 
 import { TimeSignatureControl } from "./TimeSignature";
 
 //================================================
 
 export function RhythmControls() {
-  const [timeSignature, setTimeSignature] = useAppTimeSignatureState();
+  const { state, setTimeSignature } = useAppState();
   return (
-    <TimeSignatureControl value={timeSignature} onChange={setTimeSignature} />
+    <TimeSignatureControl
+      value={state.rhythm.timeSignature}
+      onChange={setTimeSignature}
+    />
   );
 }

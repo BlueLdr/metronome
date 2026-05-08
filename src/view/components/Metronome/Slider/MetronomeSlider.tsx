@@ -12,7 +12,7 @@ import {
   getBpmFromSliderPosition,
   getSliderPositionFromBpm,
 } from "~/utils/helpers";
-import { useAppBpmState } from "~/utils/hooks";
+import { useAppState } from "~/view/context";
 import { StartStopButton } from "~/view/components/Controls";
 
 import { SliderNumberInput } from "./SliderNumberInput";
@@ -68,7 +68,8 @@ export type MetronomeSliderProps = Omit<
 
 export function MetronomeSlider(props: MetronomeSliderProps) {
   const [, setReRender] = useState(false);
-  const [value, onChange] = useAppBpmState();
+  const { setBpm: onChange, state } = useAppState();
+  const value = state.tempo.bpm;
 
   const valueAsPosition = round(getSliderPositionFromBpm(value), 10);
   const handleChange = (pointers: ISettingsPointer[]) => {
