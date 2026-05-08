@@ -1,14 +1,14 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { type IRhythm, Metronome, Rhythm } from "~/model";
+import { Metronome, Rhythm, Sound } from "~/model";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
   BPM_CHANGE_THROTTLE_INTERVAL,
   DEFAULT_BEAT_DIVISION,
   DEFAULT_BPM,
+  DEFAULT_MAIN_STATE,
   DEFAULT_RHYTHM,
   DEFAULT_VOLUME,
-  DEFAULT_VOLUME_SETTINGS,
   VOLUME_CHANGE_THROTTLE_INTERVAL,
   VOLUME_STORAGE_KEY,
 } from "~/utils/constants";
@@ -16,6 +16,7 @@ import { useStorageState, useThrottledUpdate } from "~/utils/hooks";
 
 import { AppContext } from "./context";
 
+import type { IRhythm } from "~/model";
 import type { AppMainState } from "~/utils/types";
 import type { AppContextState } from "./context";
 
@@ -24,17 +25,20 @@ import type { AppContextState } from "./context";
 export function AppContextProvider({ children }: React.PropsWithChildren) {
   const [state, setState] = useStorageState<AppMainState>(
     APP_MAIN_STATE_STORAGE_KEY,
-    {
-      bpm: DEFAULT_BPM,
-      rhythm: DEFAULT_RHYTHM,
-      beatDivision: DEFAULT_BEAT_DIVISION,
-      volumeSettings: DEFAULT_VOLUME_SETTINGS,
-    },
+    DEFAULT_MAIN_STATE,
   );
 
-  const [volume, setVolume] = useStorageState<number>(
+  const [volume, setVolume_] = useStorageState<number>(
     VOLUME_STORAGE_KEY,
     DEFAULT_VOLUME,
+  );
+
+  const setVolume = useCallback(
+    (value: React.SetStateAction<number>) =>
+      setVolume_((prev) =>
+        Sound.clampVolume(typeof value === "number" ? value : value(prev)),
+      ),
+    [setVolume_],
   );
 
   const [playing, setPlaying] = useState(false);
@@ -42,8 +46,7 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
   const metronome = useMemo(
     () =>
       new Metronome({
-        beatDivision: state.beatDivision ?? DEFAULT_BEAT_DIVISION,
-        bpm: state.bpm ?? DEFAULT_BPM,
+        ...state.tempo,
         setPlaying,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,14 +57,14 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
     (value: number) => metronome.setBpm(value),
     BPM_CHANGE_THROTTLE_INTERVAL,
     [metronome],
-    state.bpm ?? DEFAULT_BPM,
+    state.tempo.bpm ?? DEFAULT_BPM,
   );
 
   useThrottledUpdate(
     (value: number) => metronome.setBeatDivision(value),
     BPM_CHANGE_THROTTLE_INTERVAL,
     [metronome],
-    state.beatDivision ?? DEFAULT_BEAT_DIVISION,
+    state.tempo.beatDivision ?? DEFAULT_BEAT_DIVISION,
   );
 
   useThrottledUpdate(

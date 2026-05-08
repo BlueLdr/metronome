@@ -1,7 +1,7 @@
 import { ThemeProvider } from "~/theme";
+import { Root } from "~/view/components/site";
 
-import { MetronomeComponent } from "./components";
-import { AppContextProvider } from "./context";
+import { AppContextProvider, TapTempoProvider } from "./context";
 
 //================================================
 
@@ -9,7 +9,9 @@ function App() {
   return (
     <ThemeProvider>
       <AppContextProvider>
-        <MetronomeComponent />
+        <TapTempoProvider>
+          <Root />
+        </TapTempoProvider>
       </AppContextProvider>
     </ThemeProvider>
   );

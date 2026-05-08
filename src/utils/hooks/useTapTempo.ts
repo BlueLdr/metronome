@@ -49,7 +49,7 @@ export const useTapTempo = (options: UseTapTempoOptions) => {
         if (!rollingAverage) {
           return;
         }
-        onFinish?.(MINUTE / rollingAverage.value);
+        onFinish?.(Math.round(MINUTE / rollingAverage.value));
         setPreviousTime(undefined);
         setActive(false);
         setRollingAverage(undefined);
@@ -67,7 +67,7 @@ export const useTapTempo = (options: UseTapTempoOptions) => {
           );
         } else {
           const nextAvg = rollingAverage.next(difference);
-          onUpdate(MINUTE / nextAvg);
+          onUpdate(Math.round(MINUTE / nextAvg));
         }
       }
       setPreviousTime(now);

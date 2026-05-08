@@ -11,3 +11,6 @@ export const MAX_SLIDER_BPM = 240;
 
 export const BPM_CHANGE_THROTTLE_INTERVAL = 250;
 export const VOLUME_CHANGE_THROTTLE_INTERVAL = 30;
+
+export const VOLUME_INTERVAL = 2;
+export const VOLUME_JUMP_INTERVAL = 5;
