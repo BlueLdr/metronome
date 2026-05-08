@@ -1,12 +1,22 @@
-import type { IRhythm } from "~/model";
+import type { IRhythm, ISound, ITempo } from "~/model";
+import type { KeybindSettings } from "./keybinds";
 
 //================================================
 
+export type AppSettings = {
+  volume: VolumeSettings;
+  keybinds: KeybindSettings;
+};
+
+export type AppData = {
+  settings: AppSettings;
+};
+
 export type AppMainState = {
   rhythm: IRhythm;
-  bpm: number;
-  beatDivision: number;
-  volumeSettings: VolumeSettings;
+  tempo: ITempo;
+  sound: ISound;
+  data: AppData;
 };
 
 export type VolumeSettings = {

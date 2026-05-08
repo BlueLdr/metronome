@@ -1,0 +1,91 @@
+import { values } from "lodash";
+import { useEffect } from "react";
+
+import { Rhythm } from "~/model";
+import { VOLUME_INTERVAL, VOLUME_JUMP_INTERVAL } from "~/utils/constants";
+import { getBpmJumpInterval } from "~/utils/helpers";
+import { useAppBpmState, useAppState, useValueRef } from "~/utils/hooks";
+import { KeybindAction } from "~/utils/types";
+import { useTapTempoContext } from "~/view/context";
+
+//================================================
+
+const keybindActions = values(KeybindAction);
+
+export function KeybindHandler() {
+  const { metronome, setVolume, state } = useAppState();
+  const { button } = useTapTempoContext();
+  const [, setBpm] = useAppBpmState();
+
+  const { keybinds } = state.data.settings;
+  const keybindsRef = useValueRef(keybinds);
+
+  const keybindCallbacks = useValueRef({
+    [KeybindAction.PlayPause]: () =>
+      metronome.playing
+        ? metronome.stop()
+        : metronome.start(
+            new Rhythm(state.rhythm.timeSignature, state.rhythm.notes),
+          ),
+
+    [KeybindAction.BpmUp]: () => setBpm((prev) => prev + 1),
+
+    [KeybindAction.BpmDown]: () => setBpm((prev) => prev - 1),
+
+    [KeybindAction.BpmJumpUp]: () =>
+      setBpm((prev) => prev + getBpmJumpInterval(prev, 1)),
+
+    [KeybindAction.BpmJumpDown]: () =>
+      setBpm((prev) => prev - getBpmJumpInterval(prev, -1)),
+
+    [KeybindAction.VolumeUp]: () =>
+      setVolume((prev) => prev + VOLUME_INTERVAL / 100),
+
+    [KeybindAction.VolumeDown]: () =>
+      setVolume((prev) => prev - VOLUME_INTERVAL / 100),
+
+    [KeybindAction.VolumeJumpUp]: () =>
+      setVolume((prev) => prev + VOLUME_JUMP_INTERVAL / 100),
+
+    [KeybindAction.VolumeJumpDown]: () =>
+      setVolume((prev) => prev - VOLUME_JUMP_INTERVAL / 100),
+
+    [KeybindAction.TapTempo]: () => button?.click(),
+  } satisfies Record<KeybindAction, () => void>);
+
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement && e.key.startsWith("Arrow")) {
+        return;
+      }
+
+      for (const action of keybindActions) {
+        const keybind = keybindsRef.current[action];
+        if (!keybind) {
+          continue;
+        }
+
+        if (
+          keybind.key === e.key &&
+          !!keybind.altKey === e.altKey &&
+          !!keybind.ctrlKey === e.ctrlKey &&
+          !!keybind.metaKey === e.metaKey &&
+          !!keybind.shiftKey === e.shiftKey
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          keybindCallbacks.current[action]();
+          return;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", listener, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", listener, {
+        capture: true,
+      });
+  }, [keybindCallbacks, keybindsRef]);
+
+  return null;
+}

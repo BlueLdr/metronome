@@ -4,11 +4,8 @@ import { Metronome } from "~/model";
 import { loadStorageSafely } from "~/utils/helpers";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
-  DEFAULT_BEAT_DIVISION,
-  DEFAULT_BPM,
-  DEFAULT_RHYTHM,
+  DEFAULT_MAIN_STATE,
   DEFAULT_VOLUME,
-  DEFAULT_VOLUME_SETTINGS,
   VOLUME_STORAGE_KEY,
 } from "~/utils/constants";
 
@@ -24,12 +21,7 @@ export type AppContextState = WithStateHook<"state", AppMainState> &
 
 const initialMainState = loadStorageSafely<AppMainState>(
   APP_MAIN_STATE_STORAGE_KEY,
-  {
-    bpm: DEFAULT_BPM,
-    rhythm: DEFAULT_RHYTHM,
-    beatDivision: DEFAULT_BEAT_DIVISION,
-    volumeSettings: DEFAULT_VOLUME_SETTINGS,
-  },
+  DEFAULT_MAIN_STATE,
 );
 const initialVolume = loadStorageSafely<number>(
   VOLUME_STORAGE_KEY,
@@ -44,8 +36,8 @@ export const AppContext = createContext<AppContextState>({
   playing: false,
   setPlaying: () => undefined,
   metronome: new Metronome({
-    bpm: initialMainState.bpm,
+    bpm: initialMainState.tempo.bpm,
     setPlaying: () => undefined,
-    beatDivision: initialMainState.beatDivision,
+    beatDivision: initialMainState.tempo.beatDivision,
   }),
 });

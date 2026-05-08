@@ -1,5 +1,6 @@
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 
+import { MAX_BPM, MIN_BPM } from "~/utils/constants";
 import { createRhythm } from "~/utils/helpers";
 import { AppContext } from "~/view/context";
 
@@ -13,9 +14,25 @@ export const useMetronome = () => useContext(AppContext).metronome;
 export const useAppBpmState = () => {
   const { state, setState } = useAppState();
 
-  const setBpm = (value: number) => setState((s) => ({ ...s, bpm: value }));
+  const setBpm = useCallback(
+    (value: React.SetStateAction<number>) =>
+      setState((s) => ({
+        ...s,
+        tempo: {
+          ...s.tempo,
+          bpm: Math.min(
+            MAX_BPM,
+            Math.max(
+              MIN_BPM,
+              typeof value === "number" ? value : value(s.tempo.bpm),
+            ),
+          ),
+        },
+      })),
+    [setState],
+  );
 
-  return [state.bpm, setBpm, state] as const;
+  return [state.tempo.bpm, setBpm, state] as const;
 };
 
 export const useAppTimeSignatureState = () => {
@@ -29,7 +46,7 @@ export const useAppTimeSignatureState = () => {
         Math.round(
           state.rhythm.notes.length / state.rhythm.timeSignature.count,
         ),
-        state.volumeSettings,
+        state.data.settings.volume,
       ),
     }));
 
@@ -52,7 +69,7 @@ export const useAppSubdivisonsState = () => {
       rhythm: createRhythm(
         state.rhythm.timeSignature,
         Math.round(newValue),
-        state.volumeSettings,
+        state.data.settings.volume,
       ),
     }));
   };

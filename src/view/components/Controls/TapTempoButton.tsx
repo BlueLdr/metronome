@@ -3,8 +3,10 @@ import * as React from "react";
 import { useCallback } from "react";
 
 import { MAX_BPM, MIN_BPM } from "~/utils/constants";
-import { useAppState, useTapTempo } from "~/utils/hooks";
+import { useAppBpmState, useTapTempo } from "~/utils/hooks";
+import { useTapTempoContext } from "~/view/context";
 
+import { useForkRef } from "@mui/material/utils";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -44,20 +46,24 @@ export function TapTempoButton({
   iconOnly,
   ...props
 }: TapTempoButtonProps) {
-  const { setState } = useAppState();
+  const { setButton } = useTapTempoContext();
+  const [, setBpm] = useAppBpmState();
   const updateBpm = useCallback(
     (value: number) => {
       const bpm = Math.round(Math.min(MAX_BPM, Math.max(MIN_BPM, value)));
-      setState((s) => ({ ...s, bpm }));
+      setBpm(bpm);
       onUpdate?.(bpm);
     },
-    [onUpdate, setState],
+    [onUpdate, setBpm],
   );
+
   const [onClick, active] = useTapTempo({
     onUpdate: updateBpm,
     onFinish,
     sampleSize,
   });
+
+  const ref = useForkRef(props.ref, setButton);
 
   if (iconOnly) {
     const scale = props.size === "large" ? 16 : props.size === "small" ? 8 : 12;
@@ -74,6 +80,7 @@ export function TapTempoButton({
           variant={active ? "contained" : "outlined"}
           disableRipple={false}
           {...props}
+          ref={ref}
           className={mergeClassNames(
             active ? "TapTempo-active" : undefined,
             props.className,
@@ -111,6 +118,7 @@ export function TapTempoButton({
       disableRipple={false}
       size="large"
       {...props}
+      ref={ref}
       startIcon={active ? activeIcon : icon}
       onClick={(e) => {
         onClick(e);
