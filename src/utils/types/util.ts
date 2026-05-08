@@ -14,6 +14,8 @@ export type NullableStringPropOf<T extends object> = PropsOfType<
   string | null | undefined
 >;
 
+export type ArrayItem<T extends unknown[]> = T extends (infer I)[] ? I : never;
+
 export interface TypeCheckFunction<T> {
   (value: unknown): value is T;
 }
@@ -28,6 +30,15 @@ export type WithStateHook<Name extends string, T> = Record<Name, T> &
  */
 export type ValueAndSetter<Name extends string, T> = Record<Name, T> &
   Record<`set${Capitalize<Name>}`, (value: T) => void>;
+
+export type StateWithSetters<State extends object> = State &
+  UnionToIntersection<
+    {
+      [K in keyof State]: K extends string
+        ? Record<`set${Capitalize<K>}`, (newValue: State[K]) => void>
+        : never;
+    }[keyof State]
+  >;
 
 /** Combines T and O, but for any common properties, the types from O are used */
 export type WithOverrides<T, O> = DistributiveOmit<T, keyof O> & O;

@@ -12,12 +12,14 @@ import {
   VOLUME_CHANGE_THROTTLE_INTERVAL,
 } from "~/utils/constants";
 import { useStorageReducer, useThrottledUpdate } from "~/utils/hooks";
-import { appMainStateReducer } from "~/view/context/app/reducer";
 
 import { AppContext } from "./context";
+import { appMainStateReducer } from "./reducer";
 
+import type { SoundSettings } from "~/utils/types";
 import type { TimeSignature, IRhythm } from "~/model";
 import type { AppContextState } from "./context";
+import type { AppStateSetSoundAction } from "./reducer";
 
 //================================================
 
@@ -47,6 +49,24 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
   const setVolume = useCallback(
     (value: React.SetStateAction<number>) =>
       dispatch({ type: "set-volume", parameters: { value } }),
+    [dispatch],
+  );
+
+  const setSound = useCallback(
+    (parameters: AppStateSetSoundAction) =>
+      dispatch({ type: "set-sound", parameters }),
+    [dispatch],
+  );
+
+  const setSoundVolume = useCallback(
+    (part: keyof SoundSettings, value: React.SetStateAction<number>) =>
+      dispatch({ type: "set-sound-volume", parameters: { part, value } }),
+    [dispatch],
+  );
+
+  const setSoundSettings = useCallback(
+    (value: React.SetStateAction<SoundSettings>) =>
+      dispatch({ type: "set-sound-settings", parameters: { value } }),
     [dispatch],
   );
 
@@ -101,6 +121,9 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
       setTimeSignature,
       setSubdivisions,
       setVolume,
+      setSound,
+      setSoundVolume,
+      setSoundSettings,
     }),
     [
       state,
@@ -110,6 +133,9 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
       setTimeSignature,
       setSubdivisions,
       setVolume,
+      setSound,
+      setSoundVolume,
+      setSoundSettings,
     ],
   );
 

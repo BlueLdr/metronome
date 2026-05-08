@@ -8,7 +8,8 @@ import {
 } from "~/utils/constants";
 
 import type { TimeSignature } from "~/model";
-import type { AppMainState } from "~/utils/types";
+import type { AppMainState, SoundSettings } from "~/utils/types";
+import type { AppStateSetSoundAction } from "~/view/context/app/reducer";
 
 //================================================
 
@@ -21,6 +22,12 @@ export type AppContextState = {
   setTimeSignature: React.Dispatch<React.SetStateAction<TimeSignature>>;
   setSubdivisions: React.Dispatch<React.SetStateAction<number>>;
   setVolume: React.Dispatch<React.SetStateAction<number>>;
+  setSound: (parameters: AppStateSetSoundAction) => void;
+  setSoundVolume: (
+    part: keyof SoundSettings,
+    newValue: React.SetStateAction<number>,
+  ) => void;
+  setSoundSettings: React.Dispatch<React.SetStateAction<SoundSettings>>;
 };
 
 const initialMainState = loadStorageSafely<AppMainState>(
@@ -40,6 +47,9 @@ export const AppContext = createContext<AppContextState>({
   setTimeSignature: () => undefined,
   setSubdivisions: () => undefined,
   setVolume: () => undefined,
+  setSound: () => undefined,
+  setSoundVolume: () => undefined,
+  setSoundSettings: () => undefined,
 });
 
 export const useAppState = () => useContext(AppContext);

@@ -2,7 +2,11 @@ import { values } from "lodash";
 import { useEffect } from "react";
 
 import { Rhythm } from "~/model";
-import { VOLUME_INTERVAL, VOLUME_JUMP_INTERVAL } from "~/utils/constants";
+import {
+  METRONOME_CONTAINER_ID,
+  VOLUME_INTERVAL,
+  VOLUME_JUMP_INTERVAL,
+} from "~/utils/constants";
 import { getBpmJumpInterval } from "~/utils/helpers";
 import { useValueRef } from "~/utils/hooks";
 import { KeybindAction } from "~/utils/types";
@@ -11,6 +15,15 @@ import { useAppState, useTapTempoContext } from "~/view/context";
 //================================================
 
 const keybindActions = values(KeybindAction);
+
+const shouldIgnoreKeyPress = (e: KeyboardEvent) => {
+  return (
+    (e.target instanceof HTMLInputElement && e.key.startsWith("Arrow")) ||
+    ((e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLButtonElement) &&
+      !e.target.matches(`${METRONOME_CONTAINER_ID} *`))
+  );
+};
 
 export function KeybindHandler() {
   const { metronome, setVolume, state } = useAppState();
@@ -55,7 +68,7 @@ export function KeybindHandler() {
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement && e.key.startsWith("Arrow")) {
+      if (shouldIgnoreKeyPress(e)) {
         return;
       }
 

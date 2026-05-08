@@ -4,7 +4,7 @@ import type { KeybindSettings } from "./keybinds";
 //================================================
 
 export type AppSettings = {
-  volume: VolumeSettings;
+  sounds: SoundSettings;
   keybinds: KeybindSettings;
 };
 
@@ -15,13 +15,17 @@ export type AppData = {
 export type AppMainState = {
   rhythm: IRhythm;
   tempo: ITempo;
-  sound: ISound;
   volume: number;
   data: AppData;
 };
 
-export type VolumeSettings = {
-  firstBeatVolume: number;
-  beatVolume: number;
-  subdivisionVolume: number;
+export type SoundSettings = {
+  base: Required<SoundSettingsItem>;
+  firstBeat: SoundSettingsItem;
+  subdivision: SoundSettingsItem;
+};
+
+export type SoundSettingsItem = {
+  sound?: ISound;
+  volume: number;
 };

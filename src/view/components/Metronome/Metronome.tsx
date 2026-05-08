@@ -1,3 +1,6 @@
+import { METRONOME_CONTAINER_ID } from "~/utils/constants";
+import { SettingsModal } from "~/view/components/Settings";
+
 import { Controls, MasterVolumeSlider, RhythmControls } from "../Controls";
 import { TapTempoButton } from "../Controls/TapTempoButton";
 import { MetronomeSlider } from "./Slider/MetronomeSlider";
@@ -17,6 +20,7 @@ export type MetronomeProps = {
 export function MetronomeComponent({ sliderProps }: MetronomeProps) {
   return (
     <Grid
+      id={METRONOME_CONTAINER_ID}
       container
       display="grid"
       direction="column"
@@ -52,11 +56,13 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
         justifyContent="center"
         gap={8}
       >
-        <div />
+        <SettingsModal />
         <MasterVolumeSlider
           orientation="vertical"
           iconPosition="min"
-          sx={{ height: (theme) => theme.spacing(50) }}
+          containerProps={{
+            sx: { flexGrow: 1 },
+          }}
         />
 
         <TapTempoButton
@@ -65,6 +71,7 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
           size="large"
           icon={<TouchAppRounded />}
           activeIcon={<FiberSmartRecordIcon color="error" />}
+          sx={{ marginBottom: (theme) => theme.spacing(6) }}
         />
       </Grid>
 

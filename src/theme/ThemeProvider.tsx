@@ -27,7 +27,7 @@ const useGlobalStyles = (
         MozOsxFontSmoothing: "grayscale",
       },
       "#root": {
-        display: "grid",
+        // display: "grid",
         // gridTemplateColumns: "auto 1fr",
         minHeight: "100vh",
       },
