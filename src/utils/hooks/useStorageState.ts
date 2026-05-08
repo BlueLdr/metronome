@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useReducer, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import { loadStorageSafely } from "~/utils/helpers";
 
@@ -86,34 +86,20 @@ export const useStorageReducer = <
   const value = useMemo(() => JSON.parse(rawValue) as T, [rawValue]);
 
   const valueRef = useValueRef(value);
-  const setValue = useCallback(
-    (state: React.SetStateAction<T>) => {
-      const newValue =
-        typeof state === "function" ? state(valueRef.current) : state;
+  const dispatch = useCallback(
+    (...args: A) => {
+      const newValue = reducer(valueRef.current, ...args);
       window.localStorage.setItem(key, JSON.stringify(newValue));
       window.dispatchEvent(
         new StorageEvent("storage", {
           key,
-          newValue,
+          newValue: JSON.stringify(newValue),
           oldValue: JSON.stringify(valueRef.current),
         }),
       );
     },
-    [key, valueRef],
+    [key, reducer, valueRef],
   );
-
-  const wrappedReducer = useCallback(
-    (_: undefined, ...action: A) => {
-      requestAnimationFrame(() => {
-        setValue((prevState) => reducer(prevState, ...action));
-      });
-      return undefined;
-    },
-    [reducer, setValue],
-  );
-
-  // eslint-disable-next-line react-hooks/refs
-  const [, dispatch] = useReducer(wrappedReducer, undefined);
 
   return [value, dispatch] as const;
 };

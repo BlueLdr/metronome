@@ -1,7 +1,7 @@
 import { Sound } from "~/model";
-import { FancySlider } from "~/view/components/common";
 
-import Typography from "@mui/material/Typography";
+import { FancySlider } from "./FancySlider";
+
 import VolumeUp from "@mui/icons-material/VolumeUpRounded";
 import VolumeDown from "@mui/icons-material/VolumeDownRounded";
 import VolumeMute from "@mui/icons-material/VolumeMuteRounded";
@@ -38,11 +38,7 @@ export function VolumeSlider({
       max={1}
       step={0.01}
       shiftStep={0.1}
-      tooltip={(value) => (
-        <Typography variant="caption" fontWeight="700">
-          {Math.round(value * 100)}
-        </Typography>
-      )}
+      tooltip={(value) => Math.round(value * 100)}
       iconMin={iconPosition === "min" ? icon : undefined}
       iconMax={iconPosition === "max" ? icon : undefined}
       onChange={(_, value, __) => {

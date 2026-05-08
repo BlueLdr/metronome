@@ -17,7 +17,7 @@ export class Note implements INote {
     this.index = index;
     this.interval = config.interval;
     this._volume = config.volume;
-    this.sound = new Sound(config.sound.name, config.sound.url, onInitSound);
+    this.sound = new Sound(config.sound, onInitSound);
   }
 
   readonly index: number;
@@ -34,7 +34,10 @@ export class Note implements INote {
     if (!this.gainNode) {
       this.gainNode = audioContext.createGain();
     }
-    this.gainNode.gain.value = Sound.clampVolume(playerVolume) * this.volume;
+    this.gainNode.gain.value =
+      Sound.clampVolume(playerVolume) *
+      this.volume *
+      (this.sound.url.startsWith("https://gleitz.github.io") ? 2 : 1);
 
     const source = audioContext.createBufferSource();
     source.buffer = transformBuffer
@@ -66,7 +69,10 @@ export class Note implements INote {
 
   onChangePlayerVolume(newVolume: number) {
     if (this.gainNode) {
-      this.gainNode.gain.value = Sound.clampVolume(newVolume) * this.volume;
+      this.gainNode.gain.value =
+        Sound.clampVolume(newVolume) *
+        this.volume *
+        (this.sound.url.startsWith("https://gleitz.github.io") ? 2 : 1);
     }
   }
 

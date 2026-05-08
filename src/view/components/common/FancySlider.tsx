@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
 import { mergeSlotProps } from "@mui/material/utils";
-import Box from "@mui/material/Box";
+import Grid from "@mui/material/Grid";
 import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 
 import type * as Popper from "@popperjs/core";
 import type { SliderProps } from "@mui/material/Slider";
+import type { StackProps } from "@mui/material/Stack";
 
 //================================================
 
@@ -16,6 +18,7 @@ export type FancySliderProps = Omit<SliderProps, "value" | "orientation"> & {
   iconMin?: React.ReactNode;
   iconMax?: React.ReactNode;
   tooltip?: boolean | ((value: number) => React.ReactNode);
+  containerProps?: StackProps;
 } & (
     | {
         orientation?: "horizontal";
@@ -32,6 +35,7 @@ export function FancySlider({
   iconMax,
   tooltip,
   tooltipSide,
+  containerProps,
   ...props
 }: FancySliderProps) {
   const [thumbRef, setThumbRef] = useState<HTMLSpanElement | null>(null);
@@ -68,20 +72,38 @@ export function FancySlider({
 
   return (
     <Stack
-      direction={props.orientation === "vertical" ? "column" : "row"}
       gap={
         (props.size === "small" ? 1 : 2) *
         (props.orientation === "vertical" ? 2 : 1)
       }
       alignItems="center"
       justifyContent="center"
+      {...containerProps}
+      direction={props.orientation === "vertical" ? "column" : "row"}
     >
-      {startIcon && <Box fontSize={props.size}>{startIcon}</Box>}
+      {startIcon && (
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="center"
+          fontSize={props.size}
+        >
+          {startIcon}
+        </Grid>
+      )}
       {tooltip ? (
         <Tooltip
           arrow
           title={
-            typeof tooltip === "boolean" ? props.value : tooltip(props.value)
+            <Typography
+              variant="caption"
+              fontFamily="var(--font-number-input)"
+              fontWeight="700"
+            >
+              {typeof tooltip === "boolean"
+                ? props.value
+                : tooltip(props.value)}
+            </Typography>
           }
           placement={tooltipSide}
           slotProps={{
@@ -99,7 +121,16 @@ export function FancySlider({
       ) : (
         slider
       )}
-      {endIcon && <Box fontSize={props.size}>{endIcon}</Box>}
+      {endIcon && (
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="center"
+          fontSize={props.size}
+        >
+          {endIcon}
+        </Grid>
+      )}
     </Stack>
   );
 }

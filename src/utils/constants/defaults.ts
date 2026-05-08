@@ -1,37 +1,24 @@
 import { KeybindAction } from "~/utils/types";
 
-import { TEMP_CLICK_SOUND_URL } from "./common";
+import { SOUND_OPTIONS } from "./sounds";
 
 import type {
   AppData,
   AppMainState,
   AppSettings,
   KeybindSettings,
-  VolumeSettings,
+  SoundSettings,
 } from "~/utils/types";
-import type { IRhythm, ISound, ITempo } from "~/model";
+import type { IRhythm, ISound, ITempo, TimeSignature } from "~/model";
 
 //================================================
 
-export const DEFAULT_SOUND: ISound = {
-  name: "click",
-  url: TEMP_CLICK_SOUND_URL,
-};
+export const DEFAULT_SOUND: ISound = SOUND_OPTIONS[0];
 
-export const DEFAULT_RHYTHM: IRhythm = {
-  timeSignature: { count: 4, division: 4 },
-  notes: [
-    { sound: DEFAULT_SOUND, volume: 1, interval: 0.25 },
-    { sound: DEFAULT_SOUND, volume: 0.25, interval: 0.25 },
-    { sound: DEFAULT_SOUND, volume: 0.25, interval: 0.25 },
-    { sound: DEFAULT_SOUND, volume: 0.25, interval: 0.25 },
-  ],
-};
-
-export const DEFAULT_VOLUME_SETTINGS: VolumeSettings = {
-  firstBeatVolume: 1,
-  beatVolume: 0.25,
-  subdivisionVolume: 0.125,
+export const DEFAULT_SOUND_SETTINGS: SoundSettings = {
+  base: { sound: DEFAULT_SOUND, volume: 0.4 },
+  firstBeat: { volume: 1 },
+  subdivision: { volume: 0.15 },
 };
 
 export const DEFAULT_KEYBINDS: KeybindSettings = {
@@ -92,7 +79,7 @@ export const DEFAULT_KEYBINDS: KeybindSettings = {
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  volume: DEFAULT_VOLUME_SETTINGS,
+  sounds: DEFAULT_SOUND_SETTINGS,
   keybinds: DEFAULT_KEYBINDS,
 };
 
@@ -110,10 +97,36 @@ export const DEFAULT_TEMPO: ITempo = {
 export const DEFAULT_VOLUME = 0.5;
 export const DEFAULT_TAP_TEMPO_SAMPLE_SIZE = 6;
 
+export const DEFAULT_TIME_SIGNATURE: TimeSignature = { count: 4, division: 4 };
+export const DEFAULT_RHYTHM: IRhythm = {
+  timeSignature: DEFAULT_TIME_SIGNATURE,
+  notes: [
+    {
+      sound: DEFAULT_SOUND,
+      volume: DEFAULT_SOUND_SETTINGS.firstBeat.volume,
+      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+    },
+    {
+      sound: DEFAULT_SOUND,
+      volume: DEFAULT_SOUND_SETTINGS.base.volume,
+      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+    },
+    {
+      sound: DEFAULT_SOUND,
+      volume: DEFAULT_SOUND_SETTINGS.base.volume,
+      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+    },
+    {
+      sound: DEFAULT_SOUND,
+      volume: DEFAULT_SOUND_SETTINGS.base.volume,
+      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+    },
+  ],
+};
+
 export const DEFAULT_MAIN_STATE: AppMainState = {
   rhythm: DEFAULT_RHYTHM,
   tempo: DEFAULT_TEMPO,
-  sound: DEFAULT_SOUND,
   volume: DEFAULT_VOLUME,
   data: DEFAULT_DATA,
 };

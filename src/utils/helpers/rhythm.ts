@@ -1,5 +1,4 @@
 import { Rhythm } from "~/model";
-import { DEFAULT_SOUND, DEFAULT_VOLUME_SETTINGS } from "~/utils/constants";
 
 import { isInt } from "./math";
 
@@ -10,6 +9,7 @@ import type {
   TimeSignature,
   INote,
 } from "~/model";
+import type { SoundSettings } from "~/utils/types";
 
 //================================================
 
@@ -59,25 +59,21 @@ export const getNoteStartTimeOffsetInScheduledMeasure = (
 
 export const createRhythm = (
   timeSignature: TimeSignature,
+  soundSettings: SoundSettings,
   subdivisions = 1,
-  volumeSettings = DEFAULT_VOLUME_SETTINGS,
 ) => {
   const newNoteCount = subdivisions * timeSignature.count;
   const newNotes: INote[] = [];
   for (let i = 0; i < newNoteCount; i++) {
     const noteInterval = 1 / timeSignature.division / subdivisions;
-    const volume =
-      volumeSettings[
-        i === 0
-          ? "firstBeatVolume"
-          : i % subdivisions === 0
-            ? "beatVolume"
-            : "subdivisionVolume"
+    const config =
+      soundSettings[
+        i === 0 ? "firstBeat" : i % subdivisions === 0 ? "base" : "subdivision"
       ];
     newNotes.push({
       interval: noteInterval,
-      volume,
-      sound: DEFAULT_SOUND,
+      volume: config.volume,
+      sound: config.sound ?? soundSettings.base.sound,
     });
   }
 

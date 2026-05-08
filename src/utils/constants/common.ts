@@ -1,6 +1,3 @@
-export const TEMP_CLICK_SOUND_URL =
-  "https://cdn.pixabay.com/audio/2022/03/24/audio_2b40d8d795.mp3";
-
 export const MINUTE = 60 * 1000;
 
 export const MIN_BPM = 1;
@@ -14,3 +11,5 @@ export const VOLUME_CHANGE_THROTTLE_INTERVAL = 30;
 
 export const VOLUME_INTERVAL = 2;
 export const VOLUME_JUMP_INTERVAL = 5;
+
+export const METRONOME_CONTAINER_ID = "metronome-container";

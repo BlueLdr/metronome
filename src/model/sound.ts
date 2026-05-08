@@ -1,15 +1,21 @@
-export interface ISound {
+export type Pitch =
+  | `${"A" | "B" | "Bb"}0`
+  | `${`${"C" | "F"}` | `${"A" | "B" | "D" | "E" | "G"}${"" | "b"}`}${1 | 2 | 3 | 4 | 5 | 6 | 7}`;
+
+export interface ISound<Name = string> {
   readonly url: string;
-  readonly name: string;
-  // pitch?: number;
+  readonly name: Name;
+  readonly label?: string;
+  // readonly pitch?: Pitch;
 }
 
 export class Sound implements ISound {
-  constructor(name: string, url: string, onInit?: () => void) {
-    this.name = name;
-    this.url = url;
+  constructor(base: ISound, onInit?: (sound: Sound) => void) {
+    this.name = base.name;
+    this.url = base.url;
+    this.label = base.label;
     this.data = SoundRegistry.getData(this.url);
-    this.data.then(onInit);
+    this.data.then(() => onInit?.(this));
   }
 
   public static clampVolume(value: number) {
@@ -18,11 +24,20 @@ export class Sound implements ISound {
 
   readonly url: string;
   readonly name: string;
-  // pitch?: number;
+  readonly label?: string;
+  // pitch?: Pitch;
   private data: Promise<ArrayBuffer>;
 
   async getArrayBuffer() {
     return this.data;
+  }
+
+  toJSON(): ISound {
+    return {
+      name: this.name,
+      url: this.url,
+      ...(this.label ? { label: this.label } : {}),
+    };
   }
 }
 
