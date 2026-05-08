@@ -3,8 +3,8 @@ import * as React from "react";
 import { useCallback } from "react";
 
 import { MAX_BPM, MIN_BPM } from "~/utils/constants";
-import { useAppBpmState, useTapTempo } from "~/utils/hooks";
-import { useTapTempoContext } from "~/view/context";
+import { useTapTempo } from "~/utils/hooks";
+import { useAppState, useTapTempoContext } from "~/view/context";
 
 import { useForkRef } from "@mui/material/utils";
 import Button from "@mui/material/Button";
@@ -47,7 +47,8 @@ export function TapTempoButton({
   ...props
 }: TapTempoButtonProps) {
   const { setButton } = useTapTempoContext();
-  const [, setBpm] = useAppBpmState();
+  const { setBpm } = useAppState();
+
   const updateBpm = useCallback(
     (value: number) => {
       const bpm = Math.round(Math.min(MAX_BPM, Math.max(MIN_BPM, value)));

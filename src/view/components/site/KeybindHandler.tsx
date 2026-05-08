@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import { Rhythm } from "~/model";
 import { VOLUME_INTERVAL, VOLUME_JUMP_INTERVAL } from "~/utils/constants";
 import { getBpmJumpInterval } from "~/utils/helpers";
-import { useAppBpmState, useAppState, useValueRef } from "~/utils/hooks";
+import { useValueRef } from "~/utils/hooks";
 import { KeybindAction } from "~/utils/types";
-import { useTapTempoContext } from "~/view/context";
+import { useAppState, useTapTempoContext } from "~/view/context";
 
 //================================================
 
@@ -15,7 +15,7 @@ const keybindActions = values(KeybindAction);
 export function KeybindHandler() {
   const { metronome, setVolume, state } = useAppState();
   const { button } = useTapTempoContext();
-  const [, setBpm] = useAppBpmState();
+  const { setBpm } = useAppState();
 
   const { keybinds } = state.data.settings;
   const keybindsRef = useValueRef(keybinds);
@@ -60,17 +60,20 @@ export function KeybindHandler() {
       }
 
       for (const action of keybindActions) {
-        const keybind = keybindsRef.current[action];
-        if (!keybind) {
+        const keybinds = keybindsRef.current[action];
+        if (!keybinds) {
           continue;
         }
 
         if (
-          keybind.key === e.key &&
-          !!keybind.altKey === e.altKey &&
-          !!keybind.ctrlKey === e.ctrlKey &&
-          !!keybind.metaKey === e.metaKey &&
-          !!keybind.shiftKey === e.shiftKey
+          keybinds.some(
+            (keybind) =>
+              keybind.key === e.key &&
+              !!keybind.altKey === e.altKey &&
+              !!keybind.ctrlKey === e.ctrlKey &&
+              !!keybind.metaKey === e.metaKey &&
+              !!keybind.shiftKey === e.shiftKey,
+          )
         ) {
           e.preventDefault();
           e.stopPropagation();

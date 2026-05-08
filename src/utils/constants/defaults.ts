@@ -35,40 +35,60 @@ export const DEFAULT_VOLUME_SETTINGS: VolumeSettings = {
 };
 
 export const DEFAULT_KEYBINDS: KeybindSettings = {
-  [KeybindAction.PlayPause]: {
-    key: " ",
-  },
-  [KeybindAction.BpmUp]: {
-    key: "ArrowRight",
-  },
-  [KeybindAction.BpmDown]: {
-    key: "ArrowLeft",
-  },
-  [KeybindAction.BpmJumpUp]: {
-    key: "ArrowRight",
-    shiftKey: true,
-  },
-  [KeybindAction.BpmJumpDown]: {
-    key: "ArrowLeft",
-    shiftKey: true,
-  },
-  [KeybindAction.VolumeUp]: {
-    key: "ArrowUp",
-  },
-  [KeybindAction.VolumeDown]: {
-    key: "ArrowDown",
-  },
-  [KeybindAction.VolumeJumpUp]: {
-    key: "ArrowUp",
-    shiftKey: true,
-  },
-  [KeybindAction.VolumeJumpDown]: {
-    key: "ArrowDown",
-    shiftKey: true,
-  },
-  [KeybindAction.TapTempo]: {
-    key: "t",
-  },
+  [KeybindAction.PlayPause]: [
+    {
+      key: " ",
+    },
+  ],
+  [KeybindAction.BpmUp]: [
+    {
+      key: "ArrowRight",
+    },
+  ],
+  [KeybindAction.BpmDown]: [
+    {
+      key: "ArrowLeft",
+    },
+  ],
+  [KeybindAction.BpmJumpUp]: [
+    {
+      key: "ArrowRight",
+      shiftKey: true,
+    },
+  ],
+  [KeybindAction.BpmJumpDown]: [
+    {
+      key: "ArrowLeft",
+      shiftKey: true,
+    },
+  ],
+  [KeybindAction.VolumeUp]: [
+    {
+      key: "ArrowUp",
+    },
+  ],
+  [KeybindAction.VolumeDown]: [
+    {
+      key: "ArrowDown",
+    },
+  ],
+  [KeybindAction.VolumeJumpUp]: [
+    {
+      key: "ArrowUp",
+      shiftKey: true,
+    },
+  ],
+  [KeybindAction.VolumeJumpDown]: [
+    {
+      key: "ArrowDown",
+      shiftKey: true,
+    },
+  ],
+  [KeybindAction.TapTempo]: [
+    {
+      key: "t",
+    },
+  ],
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -94,5 +114,6 @@ export const DEFAULT_MAIN_STATE: AppMainState = {
   rhythm: DEFAULT_RHYTHM,
   tempo: DEFAULT_TEMPO,
   sound: DEFAULT_SOUND,
+  volume: DEFAULT_VOLUME,
   data: DEFAULT_DATA,
 };

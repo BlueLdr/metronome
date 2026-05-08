@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { calculateBeats } from "~/utils/helpers";
-import { useAppState, useValueRef } from "~/utils/hooks";
+import { useValueRef } from "~/utils/hooks";
+import { useAppState } from "~/view/context";
 
 import { VisualizerNode } from "./VisualizerNode";
 

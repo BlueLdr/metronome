@@ -1,43 +1,46 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 
 import { Metronome } from "~/model";
 import { loadStorageSafely } from "~/utils/helpers";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
   DEFAULT_MAIN_STATE,
-  DEFAULT_VOLUME,
-  VOLUME_STORAGE_KEY,
 } from "~/utils/constants";
 
-import type { AppMainState, WithStateHook } from "~/utils/types";
+import type { TimeSignature } from "~/model";
+import type { AppMainState } from "~/utils/types";
 
 //================================================
 
-export type AppContextState = WithStateHook<"state", AppMainState> &
-  WithStateHook<"volume", number> &
-  WithStateHook<"playing", boolean> & {
-    metronome: Metronome;
-  };
+export type AppContextState = {
+  metronome: Metronome;
+  playing: boolean;
+  state: AppMainState;
+
+  setBpm: React.Dispatch<React.SetStateAction<number>>;
+  setTimeSignature: React.Dispatch<React.SetStateAction<TimeSignature>>;
+  setSubdivisions: React.Dispatch<React.SetStateAction<number>>;
+  setVolume: React.Dispatch<React.SetStateAction<number>>;
+};
 
 const initialMainState = loadStorageSafely<AppMainState>(
   APP_MAIN_STATE_STORAGE_KEY,
   DEFAULT_MAIN_STATE,
 );
-const initialVolume = loadStorageSafely<number>(
-  VOLUME_STORAGE_KEY,
-  DEFAULT_VOLUME,
-);
 
 export const AppContext = createContext<AppContextState>({
   state: initialMainState,
-  setState: () => undefined,
-  volume: initialVolume,
-  setVolume: () => undefined,
   playing: false,
-  setPlaying: () => undefined,
   metronome: new Metronome({
     bpm: initialMainState.tempo.bpm,
     setPlaying: () => undefined,
     beatDivision: initialMainState.tempo.beatDivision,
   }),
+  setBpm: () => undefined,
+  setTimeSignature: () => undefined,
+  setSubdivisions: () => undefined,
+  setVolume: () => undefined,
 });
+
+export const useAppState = () => useContext(AppContext);
+export const useMetronome = () => useContext(AppContext).metronome;

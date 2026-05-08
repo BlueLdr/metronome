@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 
 import { Rhythm } from "~/model";
-import { useAppState } from "~/utils/hooks";
+import { useAppState } from "~/view/context";
 
 import Fab from "@mui/material/Fab";
 import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";

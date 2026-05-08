@@ -16,6 +16,7 @@ export type AppMainState = {
   rhythm: IRhythm;
   tempo: ITempo;
   sound: ISound;
+  volume: number;
   data: AppData;
 };
 
