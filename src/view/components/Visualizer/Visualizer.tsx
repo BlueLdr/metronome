@@ -13,7 +13,11 @@ import type { VisualizerNodeHandle, VisualizerProps } from "./types";
 
 //================================================
 
-export function Visualizer({ size, subdivisions }: VisualizerProps) {
+export function Visualizer({
+  size,
+  subdivisions,
+  beats: beatsLayout,
+}: VisualizerProps) {
   const { metronome, state } = useAppState();
   const [rootRef, setRootRef] = useState<HTMLDivElement | null>(null);
   const [nodes, setNodes] = useState<Map<number, VisualizerNodeHandle | null>>(
@@ -63,17 +67,21 @@ export function Visualizer({ size, subdivisions }: VisualizerProps) {
   }, [metronome, rootRef, nodesRef]);
 
   const beats = useMemo(() => calculateBeats(state.rhythm), [state.rhythm]);
+  const combineBeats = beatsLayout === "combined";
+  console.log(`beats: `, beats);
 
   return (
     <Grid
       container
       alignItems="center"
       justifyContent="center"
+      position={combineBeats ? "relative" : undefined}
       gap={4}
       ref={setRootRef}
     >
       {state.rhythm.notes.map((_, index) =>
-        !beats[index] && subdivisions !== "separate" ? null : (
+        !beats[index] &&
+        (subdivisions !== "separate" || combineBeats) ? null : (
           <VisualizerNode
             key={index}
             handleRef={nodeRef}
@@ -81,7 +89,12 @@ export function Visualizer({ size, subdivisions }: VisualizerProps) {
             index={index}
             rhythm={state.rhythm}
             size={size}
-            subdivisions={subdivisions}
+            subdivisions={
+              combineBeats && subdivisions === "separate"
+                ? "combined"
+                : subdivisions
+            }
+            beatsCombined={combineBeats}
           />
         ),
       )}

@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { throttle } from "lodash";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { useValueRef } from "./data";
 
@@ -41,4 +48,21 @@ export const useModalTarget = <T>(target?: T) => {
   }, [shouldClear]);
 
   return [open, storedTarget, transitionProps, setStoredTarget] as const;
+};
+
+//================================================
+
+const getWindowSize = () => window.innerWidth;
+
+export const useWindowSize = (debounceDelay: number = 10) => {
+  const subscribe = useCallback(
+    (listener: () => void) => {
+      const throttledListener = throttle(listener, debounceDelay);
+      window.addEventListener("resize", throttledListener);
+      return () => window.removeEventListener("resize", throttledListener);
+    },
+    [debounceDelay],
+  );
+
+  return useSyncExternalStore(subscribe, getWindowSize);
 };

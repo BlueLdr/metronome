@@ -1,3 +1,4 @@
+import { mergeSxProps } from "~/utils/helpers";
 import { NumberInput } from "~/view/components/common";
 
 import { mergeSlotProps } from "@mui/material/utils";
@@ -22,11 +23,13 @@ export function SubdivisionSelector(props: SubdivisionSelectorProps) {
       inputProps={{
         label: "Subdivision (notes per beat)",
         ...props.inputProps,
-        sx: {
-          justifyContent: "center",
-          justifySelf: "flex-end",
-          ...props.inputProps?.sx,
-        },
+        sx: mergeSxProps(
+          {
+            justifyContent: "center",
+            justifySelf: "flex-end",
+          },
+          props.inputProps?.sx,
+        ),
         slotProps: {
           ...props.inputProps?.slotProps,
           htmlInput: mergeSlotProps(props.inputProps?.slotProps?.htmlInput, {

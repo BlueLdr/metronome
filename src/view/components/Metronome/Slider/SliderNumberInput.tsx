@@ -29,9 +29,6 @@ export function SliderNumberInput(props: SliderNumberInputProps) {
       }}
     >
       <Grid container alignItems="center" wrap="nowrap">
-        <NumberField.Decrement render={<Button size="small" />}>
-          <RemoveIcon fontSize="large" />
-        </NumberField.Decrement>
         <NumberField.Input
           render={(inputProps, state) => (
             <FilledInput
@@ -50,14 +47,15 @@ export function SliderNumberInput(props: SliderNumberInputProps) {
                     fontFamily: "var(--font-number-input)",
                     fontVariationSettings: `"wght" 450, "GRAD" 72, "wdth" 105`,
                     letterSpacing: "4px",
-                    fontSize: 92,
-                    width: (theme) => theme.spacing(38),
+                    fontSize: `calc((92 / 200) * var(--slider-radius) * 1px)`,
+                    width: `calc(${38 / 200} * var(--slider-radius) * var(--mui-spacing))`,
                     padding: (theme) => theme.spacing(2),
                   },
                 },
               }}
               sx={{
                 pr: 0,
+                order: 2,
                 flexGrow: 1,
                 borderRadius: (theme) => theme.spacing(1.5),
                 "&::before, &::after": { display: "none" },
@@ -69,7 +67,32 @@ export function SliderNumberInput(props: SliderNumberInputProps) {
             />
           )}
         />
-        <NumberField.Increment render={<Button size="small" />}>
+        <NumberField.Decrement
+          render={
+            <Button
+              size="small"
+              sx={{
+                order: 1,
+                marginRight: (theme) =>
+                  theme.spacing(`((var(--slider-radius) - 200) / 32)`),
+              }}
+            />
+          }
+        >
+          <RemoveIcon fontSize="large" />
+        </NumberField.Decrement>
+        <NumberField.Increment
+          render={
+            <Button
+              size="small"
+              sx={{
+                order: 3,
+                marginLeft: (theme) =>
+                  theme.spacing(`((var(--slider-radius) - 200) / 32)`),
+              }}
+            />
+          }
+        >
           <AddIcon fontSize="large" />
         </NumberField.Increment>
       </Grid>

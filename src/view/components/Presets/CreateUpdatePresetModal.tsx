@@ -1,3 +1,4 @@
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useState } from "react";
 
 import { buildPresetId } from "~/utils/helpers";
@@ -39,6 +40,7 @@ export function CreateUpdatePresetModal({
   onClose,
   ...props
 }: CreateUpdatePresetModalProps) {
+  const isSm = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const { savePreset } = useAppState();
 
   const [presetName, setPresetName] = useState(preset.name ?? "");
@@ -66,6 +68,7 @@ export function CreateUpdatePresetModal({
       onClose={onClose}
       id="create-update-preset-modal"
       titleText="Save metronome preset"
+      fullScreen={isSm}
       {...(preset.id
         ? {
             footerActions: [

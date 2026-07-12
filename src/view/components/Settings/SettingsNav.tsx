@@ -1,9 +1,9 @@
-import { AttributionRounded } from "@mui/icons-material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { values } from "lodash";
-import type { SxStyleProps } from "~/theme";
 
 import { SettingsTab } from "~/utils/constants";
 
+import AttributionRounded from "@mui/icons-material/AttributionRounded";
 import MusicNoteRounded from "@mui/icons-material/MusicNoteRounded";
 // import SettingsRounded from "@mui/icons-material/SettingsRounded";
 import Tab from "@mui/material/Tab";
@@ -15,7 +15,7 @@ import type { ValueAndSetter } from "~/utils/types";
 
 const LabelMap: Record<
   SettingsTab,
-  { icon: React.ReactElement; label: string; sx?: SxStyleProps & object }
+  { icon: React.ReactElement; label: string; sx?: { marginTop?: string } }
 > = {
   // [SettingsTab.General]: {
   //   icon: <SettingsRounded />,
@@ -37,17 +37,31 @@ const LabelMap: Record<
 export type SettingsNavProps = ValueAndSetter<"activeTab", SettingsTab>;
 
 export function SettingsNav({ activeTab, setActiveTab }: SettingsNavProps) {
+  const isSm = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   return (
     <Tabs
-      variant="fullWidth"
-      orientation="vertical"
+      {...(isSm
+        ? {
+            variant: "scrollable",
+            scrollButtons: "auto",
+            orientation: "horizontal",
+          }
+        : {
+            variant: "fullWidth",
+            orientation: "vertical",
+          })}
       value={activeTab}
       onChange={(_, newValue) => setActiveTab(newValue)}
-      sx={{
-        borderRight: (theme) => `1px solid ${theme.palette.divider}`,
-        py: (theme) => theme.spacing(4),
-        width: (theme) => theme.spacing(40),
-      }}
+      sx={(theme) => ({
+        [theme.breakpoints.down("sm")]: {
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        },
+        [theme.breakpoints.up("sm")]: {
+          borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+          py: (theme) => theme.spacing(4),
+          width: (theme) => theme.spacing(40),
+        },
+      })}
       slotProps={{
         list: {
           sx: {
@@ -62,16 +76,18 @@ export function SettingsNav({ activeTab, setActiveTab }: SettingsNavProps) {
           value={value}
           icon={LabelMap[value].icon}
           label={LabelMap[value].label}
-          sx={{
-            py: (theme) => theme.spacing(2),
-            minHeight: (theme) => theme.spacing(12),
-            justifyContent: "flex-start",
+          sx={(theme) => ({
+            py: theme.spacing(2),
+            minHeight: theme.spacing(12),
             "& .MuiTab-icon": {
-              marginRight: (theme) => theme.spacing(2),
+              marginRight: theme.spacing(2),
             },
-            flexGrow: 0,
+            [theme.breakpoints.up("sm")]: {
+              justifyContent: "flex-start",
+              flexGrow: 0,
+            },
             ...LabelMap[value].sx,
-          }}
+          })}
           iconPosition="start"
         />
       ))}

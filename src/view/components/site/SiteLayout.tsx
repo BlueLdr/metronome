@@ -56,6 +56,7 @@ export function SiteLayout({ children }: React.PropsWithChildren) {
           paper: {
             sx: {
               width: (theme) => theme.spacing(DRAWER_WIDTH),
+              maxWidth: "100vw",
             },
           },
         }}

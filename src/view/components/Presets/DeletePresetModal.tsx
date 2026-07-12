@@ -1,3 +1,5 @@
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 import { useAppState } from "~/view/context";
 import { Modal } from "~/view/components/common";
 
@@ -30,6 +32,7 @@ export function DeletePresetModal({
   onClose,
   ...props
 }: DeletePresetModalProps) {
+  const isXs = useMediaQuery((theme) => theme.breakpoints.down("xs"));
   const { deletePreset } = useAppState();
 
   return (
@@ -38,6 +41,7 @@ export function DeletePresetModal({
       onClose={onClose}
       id="load-preset-modal"
       titleText="Delete metronome preset"
+      fullScreen={isXs}
       cancelButton={<Button>Cancel</Button>}
       confirmButton={
         <Button

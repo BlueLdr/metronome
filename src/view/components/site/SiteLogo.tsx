@@ -18,7 +18,16 @@ export function SiteLogo(props: GridProps) {
   return (
     <Grid container gap={2} alignItems="center" {...props}>
       <StyledImage src="/favicon.svg" alt="Site logo metronome icon" />
-      <Typography variant="h4" fontSize="1.5rem" fontFamily="var(--font-logo)">
+      <Typography
+        variant="h4"
+        fontSize="1.5rem"
+        fontFamily="var(--font-logo)"
+        sx={(theme) => ({
+          [theme.breakpoints.down("xs")]: {
+            display: "none",
+          },
+        })}
+      >
         Blue Metronome
       </Typography>
     </Grid>

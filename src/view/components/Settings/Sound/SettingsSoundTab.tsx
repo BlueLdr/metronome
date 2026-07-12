@@ -1,3 +1,4 @@
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useState } from "react";
 
 import { DEFAULT_SOUND_SETTINGS, DEFAULT_VOLUME } from "~/utils/constants";
@@ -37,6 +38,7 @@ const isBasicMode = (settings: SoundSettings) =>
   );
 
 export function SettingsSoundTab() {
+  const isSm = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const { state } = useAppState();
   const [mode, setMode] = useState<"basic" | "advanced">(() =>
     isBasicMode(state.data.settings.sounds) ? "advanced" : "basic",
@@ -46,21 +48,32 @@ export function SettingsSoundTab() {
       <CardHeader
         title="Click sound"
         slotProps={{
+          title: isSm
+            ? {
+                variant: "h6",
+              }
+            : undefined,
           action: { sx: { marginRight: 0 } },
         }}
         action={
           <Tabs
             value={mode}
             onChange={(_, newMode) => setMode(newMode)}
-            sx={{
+            sx={(theme) => ({
               width: "100%",
               // margin: (theme) => theme.spacing(-4, 0, 4),
               "& .MuiTab-root": {
-                width: "50%",
-                flex: "1 1 50%",
-                maxWidth: "none",
+                [theme.breakpoints.up("sm")]: {
+                  width: "50%",
+                  flex: "1 1 50%",
+                  maxWidth: "none",
+                },
+                [theme.breakpoints.down("sm")]: {
+                  minWidth: 0,
+                  padding: theme.spacing(2),
+                },
               },
-            }}
+            })}
           >
             <Tab value="basic" label="Basic" />
             <Tab value="advanced" label="Advanced" />

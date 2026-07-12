@@ -1,5 +1,5 @@
 export * from "./CreateUpdatePresetModal";
-export * from "./SavePresetButton";
+export * from "./SavePresetModal";
 export * from "./DeletePresetModal";
 export * from "./LoadPresetModal";
 
