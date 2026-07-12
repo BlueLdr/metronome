@@ -29,6 +29,7 @@ export interface ModalProps extends DialogProps {
   hideCloseButton?: boolean;
 
   headerActions?: React.ReactNode[];
+  footerActions?: React.ReactNode[];
 }
 
 export interface ModalHeaderProps {

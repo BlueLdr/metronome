@@ -6,12 +6,9 @@
 * keyboard shortcuts
 * sounds
 
-- custom sounds
-- midi sounds
-
+* saved presets
 - timer
 - custom rhythm builder
-- saved presets
 - help
 - beat value
 
@@ -19,6 +16,8 @@
 - stats
 - drop-out/silent mode
 
+- custom sounds
+- midi sounds
 
 ### round-slider
 

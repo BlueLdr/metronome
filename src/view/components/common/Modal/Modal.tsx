@@ -42,6 +42,7 @@ export const Modal: React.FC<ModalProps> = ({
   className,
   hideCloseButton,
   headerActions,
+  footerActions,
   id,
   confirmButton: confirmButtonProp,
   cancelButton: cancelButtonProp,
@@ -122,14 +123,15 @@ export const Modal: React.FC<ModalProps> = ({
 
       <DialogContent id={`${id}-description`}>{children}</DialogContent>
 
-      {(confirmButton || cancelButton) && (
-        <DialogActions>
+      {(confirmButton || cancelButton || footerActions) && (
+        <DialogActions sx={{ padding: (theme) => theme.spacing(2, 6, 4) }}>
           <Grid
             container
             alignItems="center"
             justifyContent="flex-end"
             spacing={4}
           >
+            {footerActions}
             {cancelButton && <Grid>{cancelButton}</Grid>}
             {confirmButton && <Grid>{confirmButton}</Grid>}
           </Grid>

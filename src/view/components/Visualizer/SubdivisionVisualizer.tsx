@@ -25,18 +25,22 @@ const noteSets = NOTE_DIVISIONS.reduce(
           overflowContent={
             <NoteGrouping
               alignSelf="flex-start"
-              sx={{ fontSize: (theme) => theme.typography.h4.fontSize }}
+              sx={{
+                fontSize: (theme) => theme.typography.h3.fontSize,
+              }}
               count={sub}
               division={noteDiv}
               abbreviated
+              useAltFont
             />
           }
         >
           <NoteGrouping
             alignSelf="flex-start"
-            sx={{ fontSize: (theme) => theme.typography.h4.fontSize }}
+            sx={{ fontSize: (theme) => theme.typography.h3.fontSize }}
             count={sub}
             division={noteDiv}
+            useAltFont
           />
         </WithOverflowAltContent>
       );

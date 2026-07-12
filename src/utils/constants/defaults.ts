@@ -3,6 +3,7 @@ import { KeybindAction } from "~/utils/types";
 import { SOUND_OPTIONS } from "./sounds";
 
 import type {
+  AppMiscState,
   AppData,
   AppMainState,
   AppSettings,
@@ -83,8 +84,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   keybinds: DEFAULT_KEYBINDS,
 };
 
+export const DEFAULT_MISC_STATE: AppMiscState = {
+  sidebarOpen: true,
+};
+
 export const DEFAULT_DATA: AppData = {
   settings: DEFAULT_SETTINGS,
+  state: DEFAULT_MISC_STATE,
+  presets: [],
 };
 
 export const DEFAULT_BPM = 80;
@@ -125,6 +132,7 @@ export const DEFAULT_RHYTHM: IRhythm = {
 };
 
 export const DEFAULT_MAIN_STATE: AppMainState = {
+  version: import.meta.env.VITE_APP_VERSION,
   rhythm: DEFAULT_RHYTHM,
   tempo: DEFAULT_TEMPO,
   volume: DEFAULT_VOLUME,

@@ -1,4 +1,5 @@
 import { METRONOME_CONTAINER_ID } from "~/utils/constants";
+import { SavePresetButton } from "~/view/components/Presets";
 import { SettingsModal } from "~/view/components/Settings";
 
 import { Controls, MasterVolumeSlider, RhythmControls } from "../Controls";
@@ -27,15 +28,42 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
       alignItems="center"
       justifyContent="center"
       gridTemplateColumns="1fr auto 1fr"
-      gridTemplateRows="minmax(20vh, auto) auto 1fr"
+      gridTemplateRows="minmax(15vh, auto) auto 1fr"
       gridTemplateAreas={
         "'top top top' 'left gauge right' 'bottom bottom bottom'"
       }
       rowGap={4}
       columnGap={8}
     >
-      <Grid container gridArea="left" justifySelf="flex-end">
-        <RhythmControls />
+      <Grid
+        container
+        gridArea="left"
+        justifySelf="flex-end"
+        direction="column"
+        spacing={4}
+        alignSelf="stretch"
+        justifyContent="space-evenly"
+      >
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="center"
+          alignSelf="flex-start"
+          width="100%"
+        >
+          <SavePresetButton />
+        </Grid>
+
+        <Grid
+          container
+          alignItems="center"
+          justifyContent="center"
+          flexGrow={1}
+          pb={14}
+        >
+          <RhythmControls />
+        </Grid>
+        <Grid />
       </Grid>
       <Grid
         container

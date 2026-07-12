@@ -5,7 +5,11 @@ import { MAX_BPM, MIN_BPM } from "~/utils/constants";
 import { createRhythm } from "~/utils/helpers";
 
 import type { TimeSignature } from "~/model";
-import type { AppMainState, SoundSettings } from "~/utils/types";
+import type {
+  AppMainState,
+  MetronomePreset,
+  SoundSettings,
+} from "~/utils/types";
 
 //================================================
 
@@ -27,6 +31,13 @@ export type AppStateActionMap = {
     part: keyof SoundSettings;
   };
   ["set-sound-settings"]: { value: React.SetStateAction<SoundSettings> };
+  ["save-preset"]: {
+    value: MetronomePreset;
+    replaceId?: MetronomePreset["id"];
+  };
+  ["delete-preset"]: { value: MetronomePreset["id"] };
+  ["load-preset"]: { value: MetronomePreset };
+  ["set-sidebar-open"]: { value: React.SetStateAction<boolean> };
 };
 
 export type AppMainStateReducerAction = {
@@ -35,6 +46,8 @@ export type AppMainStateReducerAction = {
     parameters: AppStateActionMap[K];
   };
 }[keyof AppStateActionMap];
+
+const checkOptionsExhausted = (action: never) => action;
 
 const resolveNewState = <
   T extends string | number | boolean | object | null | undefined,
@@ -158,7 +171,53 @@ export function appMainStateReducer(
       };
     }
 
+    case "save-preset": {
+      const { value, replaceId } = action.parameters;
+      const updatedPresets = state.data.presets;
+      const index = updatedPresets.findIndex(
+        (p) => p.id === (replaceId ?? value.id),
+      );
+      if (index > -1) {
+        updatedPresets[index] = value;
+      } else {
+        updatedPresets.push(value);
+      }
+
+      return set(["data", "presets"], updatedPresets, state);
+    }
+
+    case "delete-preset": {
+      return set(
+        ["data", "presets"],
+        state.data.presets.filter((p) => p.id !== action.parameters.value),
+        state,
+      );
+    }
+
+    case "load-preset": {
+      const preset = action.parameters.value;
+      const rhythm = createRhythm(
+        preset.timeSignature,
+        state.data.settings.sounds,
+        preset.subdivisionCount,
+      );
+      return {
+        ...state,
+        rhythm,
+        tempo: preset.tempo,
+      };
+    }
+
+    case "set-sidebar-open": {
+      return set(
+        ["data", "state", "sidebarOpen"],
+        resolveNewState(action.parameters.value, state.data.state.sidebarOpen),
+        state,
+      );
+    }
+
     default:
+      checkOptionsExhausted(action);
       return state;
   }
 }

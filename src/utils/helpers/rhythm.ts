@@ -3,15 +3,19 @@ import { Rhythm } from "~/model";
 import { isInt } from "./math";
 
 import type {
+  ITempo,
   IRhythm,
   IBeat,
   ScheduledMeasure,
   TimeSignature,
   INote,
 } from "~/model";
-import type { SoundSettings } from "~/utils/types";
+import type { MetronomePreset, SoundSettings } from "~/utils/types";
 
 //================================================
+
+export const isTuplet = (count: number, division: number) =>
+  count > 2 && !isInt(division / count);
 
 export const calculateBeats = (rhythm: IRhythm): (IBeat | undefined)[] => {
   let currentBeat: IBeat;
@@ -78,4 +82,29 @@ export const createRhythm = (
   }
 
   return new Rhythm(timeSignature, newNotes);
+};
+
+export const buildPresetId = (
+  timeSignature: TimeSignature,
+  tempo: ITempo,
+  subdivisionCount: number,
+  name: string,
+) =>
+  `${timeSignature.count}-${timeSignature.division}_${subdivisionCount}_${tempo.bpm}-${tempo.beatDivision}_${name}`;
+
+export const buildPreset = (
+  rhythm: IRhythm,
+  tempo: ITempo,
+  name: string,
+): MetronomePreset => {
+  const subdivisionCount = rhythm.notes.length / rhythm.timeSignature.count;
+  const id = buildPresetId(rhythm.timeSignature, tempo, subdivisionCount, name);
+
+  return {
+    id,
+    name,
+    tempo,
+    timeSignature: rhythm.timeSignature,
+    subdivisionCount,
+  };
 };
