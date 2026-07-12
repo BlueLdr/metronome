@@ -11,9 +11,19 @@
     font-style: normal;
     font-display: swap;
     font-weight: 400;
+    src: url(/BravuraText.otf) format('opentype');
+    font-feature-settings: "liga" 1, "clig" 1, "dlig" 1;
+    ascent-override: 100%;
+}
+@font-face {
+    font-family: 'Bravura';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 400;
     src: url(/Bravura.otf) format('opentype'),
          url(/Bravura.woff2) format('woff2'),
          url(/Bravura.woff) format('woff');
+    font-feature-settings: "liga" 1, "clig" 1, "dlig" 1;
     /*descent-override: 25%;*/
 }
 

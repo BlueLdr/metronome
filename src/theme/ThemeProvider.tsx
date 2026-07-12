@@ -14,6 +14,7 @@ const useGlobalStyles = (
         fontOpticalSizing: "auto",
         "--font-default": "Onest",
         "--font-title": "Onest",
+        "--font-logo": "National Park",
 
         "--font-button": "Onest",
         "--font-number-input": "Roboto Flex",

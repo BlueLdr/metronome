@@ -49,7 +49,7 @@ export function Controls() {
           <Grid
             sx={{
               maxWidth: (theme) => theme.spacing(70),
-              transform: "translateY(25%)",
+              transform: "translateY(15%)",
             }}
           >
             <SubdivisionVisualizer

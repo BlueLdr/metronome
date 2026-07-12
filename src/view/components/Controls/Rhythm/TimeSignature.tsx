@@ -50,6 +50,7 @@ export function TimeSignatureControl({
     <Grid container direction="column" alignItems="center">
       <TimeSignatureNumberInput
         min={1}
+        max={64}
         value={value.count}
         onValueChange={(newValue) => {
           if (newValue != null) {

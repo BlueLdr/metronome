@@ -16,7 +16,7 @@ import { useStorageReducer, useThrottledUpdate } from "~/utils/hooks";
 import { AppContext } from "./context";
 import { appMainStateReducer } from "./reducer";
 
-import type { SoundSettings } from "~/utils/types";
+import type { MetronomePreset, SoundSettings } from "~/utils/types";
 import type { TimeSignature, IRhythm } from "~/model";
 import type { AppContextState } from "./context";
 import type { AppStateSetSoundAction } from "./reducer";
@@ -67,6 +67,30 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
   const setSoundSettings = useCallback(
     (value: React.SetStateAction<SoundSettings>) =>
       dispatch({ type: "set-sound-settings", parameters: { value } }),
+    [dispatch],
+  );
+
+  const savePreset = useCallback(
+    (value: MetronomePreset, replaceId?: MetronomePreset["id"]) =>
+      dispatch({ type: "save-preset", parameters: { value, replaceId } }),
+    [dispatch],
+  );
+
+  const deletePreset = useCallback(
+    (value: MetronomePreset["id"]) =>
+      dispatch({ type: "delete-preset", parameters: { value } }),
+    [dispatch],
+  );
+
+  const loadPreset = useCallback(
+    (value: MetronomePreset) =>
+      dispatch({ type: "load-preset", parameters: { value } }),
+    [dispatch],
+  );
+
+  const setSidebarOpen = useCallback(
+    (value: React.SetStateAction<boolean>) =>
+      dispatch({ type: "set-sidebar-open", parameters: { value } }),
     [dispatch],
   );
 
@@ -124,6 +148,12 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
       setSound,
       setSoundVolume,
       setSoundSettings,
+
+      savePreset,
+      deletePreset,
+      loadPreset,
+
+      setSidebarOpen,
     }),
     [
       state,
@@ -136,6 +166,10 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
       setSound,
       setSoundVolume,
       setSoundSettings,
+      savePreset,
+      deletePreset,
+      loadPreset,
+      setSidebarOpen,
     ],
   );
 

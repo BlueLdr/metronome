@@ -159,7 +159,7 @@ export const MuiTheme = createMuiThemeForEnvironment({
     MuiDialogTitle: {
       styleOverrides: {
         root: ({ theme }) => ({
-          backgroundColor: theme.palette.background.paperChannel,
+          backgroundColor: `rgba(${theme.palette.action.activeChannel} / 0.04)`,
         }),
       },
     },
@@ -167,7 +167,7 @@ export const MuiTheme = createMuiThemeForEnvironment({
       styleOverrides: {
         root: ({ theme }) => ({
           "& .MuiPaper-root": {
-            background: theme.palette.background.paperChannel,
+            background: `rgba(${theme.palette.action.activeChannel} / 0.04)`,
           },
         }),
       },

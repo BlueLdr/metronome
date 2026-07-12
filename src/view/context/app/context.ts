@@ -8,8 +8,12 @@ import {
 } from "~/utils/constants";
 
 import type { TimeSignature } from "~/model";
-import type { AppMainState, SoundSettings } from "~/utils/types";
-import type { AppStateSetSoundAction } from "~/view/context/app/reducer";
+import type {
+  AppMainState,
+  MetronomePreset,
+  SoundSettings,
+} from "~/utils/types";
+import type { AppStateSetSoundAction } from "./reducer";
 
 //================================================
 
@@ -28,6 +32,15 @@ export type AppContextState = {
     newValue: React.SetStateAction<number>,
   ) => void;
   setSoundSettings: React.Dispatch<React.SetStateAction<SoundSettings>>;
+
+  savePreset: (
+    preset: MetronomePreset,
+    replaceId?: MetronomePreset["id"],
+  ) => void;
+  deletePreset: (id: MetronomePreset["id"]) => void;
+  loadPreset: (preset: MetronomePreset) => void;
+
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const initialMainState = loadStorageSafely<AppMainState>(
@@ -50,6 +63,12 @@ export const AppContext = createContext<AppContextState>({
   setSound: () => undefined,
   setSoundVolume: () => undefined,
   setSoundSettings: () => undefined,
+
+  savePreset: () => undefined,
+  deletePreset: () => undefined,
+  loadPreset: () => undefined,
+
+  setSidebarOpen: () => undefined,
 });
 
 export const useAppState = () => useContext(AppContext);
