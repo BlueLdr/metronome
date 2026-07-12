@@ -1,4 +1,6 @@
+import { AttributionRounded } from "@mui/icons-material";
 import { values } from "lodash";
+import type { SxStyleProps } from "~/theme";
 
 import { SettingsTab } from "~/utils/constants";
 
@@ -13,7 +15,7 @@ import type { ValueAndSetter } from "~/utils/types";
 
 const LabelMap: Record<
   SettingsTab,
-  { icon: React.ReactElement; label: string }
+  { icon: React.ReactElement; label: string; sx?: SxStyleProps & object }
 > = {
   // [SettingsTab.General]: {
   //   icon: <SettingsRounded />,
@@ -22,6 +24,13 @@ const LabelMap: Record<
   [SettingsTab.Sound]: {
     icon: <MusicNoteRounded />,
     label: "Sounds",
+  },
+  [SettingsTab.Attribution]: {
+    icon: <AttributionRounded />,
+    label: "Attribution",
+    sx: {
+      marginTop: "auto",
+    },
   },
 };
 
@@ -39,6 +48,13 @@ export function SettingsNav({ activeTab, setActiveTab }: SettingsNavProps) {
         py: (theme) => theme.spacing(4),
         width: (theme) => theme.spacing(40),
       }}
+      slotProps={{
+        list: {
+          sx: {
+            height: "100%",
+          },
+        },
+      }}
     >
       {values(SettingsTab).map((value) => (
         <Tab
@@ -53,6 +69,8 @@ export function SettingsNav({ activeTab, setActiveTab }: SettingsNavProps) {
             "& .MuiTab-icon": {
               marginRight: (theme) => theme.spacing(2),
             },
+            flexGrow: 0,
+            ...LabelMap[value].sx,
           }}
           iconPosition="start"
         />

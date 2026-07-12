@@ -1,16 +1,19 @@
 ### features
 
-- time signature
-- beat value
-- subdivisions
-- emphasize first beat
-- keyboard shortcuts
+* time signature
+* subdivisions
+* emphasize first beat
+* keyboard shortcuts
+* sounds
+
+- custom sounds
+- midi sounds
 
 - timer
-- sounds
 - custom rhythm builder
 - saved presets
 - help
+- beat value
 
 - bpm auto increment
 - stats
@@ -19,7 +22,7 @@
 
 ### round-slider
 
-- Click trigger area
+* Click trigger area
 - hide +/- buttons while dragging slider
 
 

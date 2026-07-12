@@ -1,11 +1,12 @@
 import { styled } from "@mui/material/styles";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { SettingsTab } from "~/utils/constants";
 import { Modal } from "~/view/components/common";
 
 import { SettingsNav } from "./SettingsNav";
 import { SettingsSoundTab } from "./Sound";
+import { SettingsAttributionTab } from "./Attribution";
 
 import Fab from "@mui/material/Fab";
 import Grid from "@mui/material/Grid";
@@ -42,10 +43,16 @@ const Content = styled(Grid)`
 export function SettingsModal() {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(SettingsTab.Sound);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    contentRef.current?.scroll(0, 0);
+  }, [activeTab]);
 
   const content = {
     // [SettingsTab.General]: null,
     [SettingsTab.Sound]: <SettingsSoundTab />,
+    [SettingsTab.Attribution]: <SettingsAttributionTab />,
   } satisfies Record<SettingsTab, React.ReactNode>;
 
   return (
@@ -63,7 +70,7 @@ export function SettingsModal() {
         titleText="Settings"
       >
         <SettingsNav activeTab={activeTab} setActiveTab={setActiveTab} />
-        <Content>{content[activeTab]}</Content>
+        <Content ref={contentRef}>{content[activeTab]}</Content>
       </StyledModal>
     </>
   );
