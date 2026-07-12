@@ -1,8 +1,13 @@
 import { METRONOME_CONTAINER_ID } from "~/utils/constants";
-import { SavePresetButton } from "~/view/components/Presets";
+import { SavePresetModal } from "~/view/components/Presets";
 import { SettingsModal } from "~/view/components/Settings";
+import { Visualizer } from "~/view/components/Visualizer";
 
-import { Controls, MasterVolumeSlider, RhythmControls } from "../Controls";
+import {
+  SubdivisionControls,
+  MasterVolumeSlider,
+  RhythmControls,
+} from "../Controls";
 import { TapTempoButton } from "../Controls/TapTempoButton";
 import { MetronomeSlider } from "./Slider/MetronomeSlider";
 
@@ -33,7 +38,7 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
         "'top top top' 'left gauge right' 'bottom bottom bottom'"
       }
       rowGap={4}
-      columnGap={8}
+      columnSpacing={[4, 4, 8]}
     >
       <Grid
         container
@@ -51,7 +56,7 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
           alignSelf="flex-start"
           width="100%"
         >
-          <SavePresetButton />
+          <SavePresetModal />
         </Grid>
 
         <Grid
@@ -103,7 +108,18 @@ export function MetronomeComponent({ sliderProps }: MetronomeProps) {
         />
       </Grid>
 
-      <Controls />
+      <Grid
+        container
+        direction="column"
+        gap={8}
+        gridArea="bottom"
+        alignSelf="flex-start"
+        gridColumn="span 3"
+        alignItems="center"
+      >
+        <Visualizer size="large" subdivisions="combined" />
+        <SubdivisionControls />
+      </Grid>
     </Grid>
   );
 }

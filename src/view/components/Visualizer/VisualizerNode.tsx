@@ -1,3 +1,5 @@
+// noinspection CssUnresolvedCustomProperty
+
 import { alpha, keyframes, styled } from "@mui/material/styles";
 import { useImperativeHandle, useState } from "react";
 
@@ -22,6 +24,7 @@ type VisualizerNodeOwnerState = Pick<
   isBeat: boolean;
   isOnlyPulse: boolean;
   isOnlyBeat: boolean;
+  extraEmphasis?: boolean;
 };
 
 const makeRootAnimation = (theme: Theme, stopPercent: number) => keyframes`
@@ -32,6 +35,22 @@ const makeRootAnimation = (theme: Theme, stopPercent: number) => keyframes`
     ${`${stopPercent}%`} {
       background-color: ${alpha(theme.palette.secondary.dark, 0)};
       border-color: ${alpha(theme.palette.secondary.main, 0.2)};
+    }
+`;
+
+const makeRootEmphasizedAnimation = (
+  theme: Theme,
+  stopPercent: number,
+) => keyframes`
+    0% {
+      background-color: ${alpha(theme.palette.secondary.dark, 0.5)};
+      border-color: ${alpha(theme.palette.secondary.main, 1)};
+      outline: var(--visualizer-outline-width) solid ${alpha(theme.palette.secondary.main, 1)};
+    }
+    ${`${stopPercent}%`} {
+      background-color: ${alpha(theme.palette.secondary.dark, 0)};
+      border-color: ${alpha(theme.palette.secondary.main, 0.2)};
+      outline: var(--visualizer-outline-width) solid ${alpha(theme.palette.secondary.main, 0)};
     }
 `;
 
@@ -67,19 +86,32 @@ const makeSubPulseAnimation = (stopPercent: number) => keyframes`
     }
 `;
 
+const RootCombined = styled("div")`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`;
+
 const Root = styled("div", { name: "MuiVisualizerNode", slot: "root" })<{
   ownerState: VisualizerNodeOwnerState;
 }>(({ theme, ownerState }) => {
   const scale = 1 / (ownerState.isSmallNode ? 2 : 1);
-  const dimension = (
-    {
-      small: theme.spacing(4 * scale),
-      medium: theme.spacing(8 * scale),
-      large: theme.spacing(10 * scale),
-    } satisfies Record<Required<VisualizerNodeOwnerState>["size"], string>
-  )[ownerState.size ?? "medium"];
+  const dimension =
+    typeof ownerState.size === "number"
+      ? `${ownerState.size}px`
+      : (
+          {
+            small: theme.spacing(4 * scale),
+            medium: theme.spacing(8 * scale),
+            large: theme.spacing(10 * scale),
+          } satisfies Record<Required<VisualizerNodeOwnerState>["size"], string>
+        )[ownerState.size ?? "medium"];
 
-  const { beatDuration } = ownerState;
+  const { beatDuration, extraEmphasis, isOnlyBeat } = ownerState;
+  const makeAnimation = extraEmphasis
+    ? makeRootEmphasizedAnimation
+    : makeRootAnimation;
 
   return {
     display: "flex",
@@ -90,16 +122,21 @@ const Root = styled("div", { name: "MuiVisualizerNode", slot: "root" })<{
     height: dimension,
     borderRadius: `calc(${dimension}/2)`,
     border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
+    outline: "0px solid transparent",
     animationTimingFunction: theme.transitions.easing.easeInOut,
     animationDuration: "var(--visualizer-measure-duration)",
     animationIterationCount: "infinite",
     animationFillMode: "none",
     position: "relative",
+    "--visualizer-outline-width": `min(calc(${dimension} / 10), 1rem)`,
 
     '&[data-animate="true"]:not(:has(> [data-subpulse="true"][data-only-pulse="true"]))':
       {
         '&[data-only-beat="false"]': {
-          animationName: makeRootAnimation(theme, 100 * beatDuration * 1.2),
+          animationName: makeAnimation(
+            theme,
+            100 * beatDuration * (isOnlyBeat ? 1 : 1.2),
+          ),
         },
         '&[data-only-beat="true"]': {
           animationName: makeRootAnimation(theme, 100 * beatDuration),
@@ -115,7 +152,7 @@ const Pulse = styled("div", { name: "MuiVisualizerNode", slot: "pulse" })<{
     ownerState;
 
   let stopPercent = noteDuration;
-  if ((isBeat && !isOnlyPulse) || (isOnlyPulse && isBeat)) {
+  if (((isBeat && !isOnlyPulse) || (isOnlyPulse && isBeat)) && !isOnlyBeat) {
     stopPercent = 1.2 * noteDuration;
   } else if (isOnlyPulse && isOnlyBeat) {
     stopPercent = 0.9 * beatDuration;
@@ -239,7 +276,14 @@ function VisualizerNodeSubPulse({
 
   const ref = useForkRef(props.ref, setPulse);
 
-  return <Pulse data-subpulse={!isMainPulse} {...props} ref={ref} />;
+  return (
+    <Pulse
+      className="MuiVisualizerNode-pulse"
+      data-subpulse={!isMainPulse}
+      {...props}
+      ref={ref}
+    />
+  );
 }
 
 //================================================
@@ -251,6 +295,7 @@ export type VisualizerNodeProps = WithOverrides<
     index: number;
     rhythm: IRhythm;
     beat?: IBeat;
+    beatsCombined?: boolean;
   } & Pick<VisualizerProps, "size" | "subdivisions">
 >;
 
@@ -262,6 +307,7 @@ export function VisualizerNode({
   ref,
   beat,
   subdivisions,
+  beatsCombined,
   ...props
 }: VisualizerNodeProps) {
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
@@ -290,16 +336,23 @@ export function VisualizerNode({
 
   const ownerState: VisualizerNodeOwnerState = {
     size,
-    beatDuration: beat ? beat.totalInterval : note.interval,
-    noteDuration: note.interval,
+    beatDuration:
+      (beat ? beat.totalInterval : note.interval) /
+      (rhythm.timeSignature.count / rhythm.timeSignature.division),
+    noteDuration:
+      note.interval /
+      (rhythm.timeSignature.count / rhythm.timeSignature.division),
     isBeat,
-    isOnlyPulse: !(isCombined && beat && beat.notes.length > 1),
-    isOnlyBeat: noteCount <= 1,
+    isOnlyPulse:
+      !subdivisions || !(isCombined && beat && beat.notes.length > 1),
+    isOnlyBeat: noteCount <= 1 || !!beatsCombined,
     isSmallNode: !isBeat && !(isCombined && beat && beat?.notes.length > 1),
+    extraEmphasis: beatsCombined && index === 0 && noteCount > 1,
   };
-  return (
+  const element = (
     <Root
       {...props}
+      className={`MuiVisualizerNode-root ${props.className ?? ""}`}
       ref={rootRef}
       ownerState={ownerState}
       data-only-beat={noteCount <= 1}
@@ -316,14 +369,21 @@ export function VisualizerNode({
             ref={i === 0 && isCombined ? setMainPulse : undefined}
           />
         ))
-      ) : (
+      ) : !subdivisions && !isBeat ? null : (
         <Pulse
           data-subpulse={!isBeat}
           data-only-pulse={true}
           ownerState={ownerState}
           ref={setMainPulse}
+          className="MuiVisualizerNode-pulse"
         />
       )}
     </Root>
+  );
+
+  return beatsCombined && index > 0 ? (
+    <RootCombined>{element}</RootCombined>
+  ) : (
+    element
   );
 }

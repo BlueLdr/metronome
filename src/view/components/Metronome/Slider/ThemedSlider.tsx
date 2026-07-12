@@ -1,6 +1,8 @@
 import { useTheme } from "@mui/material/styles";
 import { RoundSlider } from "blueldr-react-round-slider";
 
+import Box from "@mui/material/Box";
+
 import type { ISettings } from "blueldr-react-round-slider";
 
 //================================================
@@ -52,15 +54,26 @@ export function ThemedSlider({ ...props }: ISettings) {
     pathRadius: 200,
 
     pointerBorder: 0,
-    pointerRadius: 12,
+    pointerRadius: 14,
   };
 
   return (
-    <RoundSlider
-      {...colorProps}
-      {...typographyProps}
-      {...sizeProps}
-      {...props}
-    />
+    <Box
+      display="contents"
+      sx={{
+        "& svg": {
+          touchAction: "manipulation",
+          "-webkit-tap-highlight-color": "transparent",
+          "-webkit-touch-callout": "none",
+        },
+      }}
+    >
+      <RoundSlider
+        {...colorProps}
+        {...typographyProps}
+        {...sizeProps}
+        {...props}
+      />
+    </Box>
   );
 }

@@ -4,6 +4,7 @@ import { NumberInput } from "~/view/components/common";
 import Grid from "@mui/material/Grid";
 
 import type { NumberFieldRootProps } from "@base-ui/react/number-field";
+import type { NumberInputProps } from "~/view/components/common";
 import type { NoteDivision } from "~/utils/types";
 import type { TimeSignature } from "~/model";
 
@@ -13,9 +14,17 @@ const TIME_SIGNATURE_DIVISIONS = NOTE_DIVISIONS.filter((n) => n <= 32).sort(
   (a, b) => (a > b ? 1 : -1),
 );
 
-type TimeSignatureNumberInputProps = NumberFieldRootProps;
+type TimeSignatureNumberInputStyleProps = Pick<
+  NumberInputProps,
+  "buttonPlacement"
+> & { fontSize?: string | number };
+type TimeSignatureNumberInputProps = NumberFieldRootProps &
+  TimeSignatureNumberInputStyleProps;
 
-function TimeSignatureNumberInput(props: TimeSignatureNumberInputProps) {
+function TimeSignatureNumberInput({
+  fontSize = 64,
+  ...props
+}: TimeSignatureNumberInputProps) {
   return (
     <NumberInput
       {...props}
@@ -24,11 +33,11 @@ function TimeSignatureNumberInput(props: TimeSignatureNumberInputProps) {
           htmlInput: {
             sx: {
               fontFamily: "Bravura Numbers",
-              fontSize: 64,
+              fontSize,
               textAlign: "center",
               height: "0.8em",
               padding: (theme) => theme.spacing(1),
-              width: (theme) => theme.spacing(21),
+              width: `calc((84 / 64) * ${typeof fontSize === "number" ? `${fontSize}px` : fontSize})`,
             },
           },
         },
@@ -40,11 +49,13 @@ function TimeSignatureNumberInput(props: TimeSignatureNumberInputProps) {
 export type TimeSignatureControlProps = {
   value: TimeSignature;
   onChange: (newValue: TimeSignature) => void;
-};
+} & TimeSignatureNumberInputStyleProps;
 
 export function TimeSignatureControl({
   value,
   onChange,
+  buttonPlacement,
+  fontSize,
 }: TimeSignatureControlProps) {
   return (
     <Grid container direction="column" alignItems="center">
@@ -57,6 +68,8 @@ export function TimeSignatureControl({
             onChange({ ...value, count: newValue });
           }
         }}
+        buttonPlacement={buttonPlacement}
+        fontSize={fontSize}
       />
       <TimeSignatureNumberInput
         min={1}
@@ -83,6 +96,8 @@ export function TimeSignatureControl({
             }
           }
         }}
+        buttonPlacement={buttonPlacement}
+        fontSize={fontSize}
       />
     </Grid>
   );

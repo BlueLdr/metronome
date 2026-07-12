@@ -7,14 +7,18 @@
 * sounds
 
 * saved presets
+* Mobile
+  * Touch screens
+    * always show hidden buttons
 - timer
 - custom rhythm builder
 - help
 - beat value
+- haptics
 
 - bpm auto increment
-- stats
 - drop-out/silent mode
+- stats
 
 - custom sounds
 - midi sounds
@@ -29,4 +33,4 @@
 ### Settings
 
 - bar vs measure
-- 
+- Colors

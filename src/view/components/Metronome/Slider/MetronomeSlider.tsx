@@ -1,26 +1,19 @@
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect, useMemo, useState } from "react";
-import { debounce, round } from "lodash";
+import { debounce } from "lodash";
 import { styled } from "@mui/material/styles";
 
-import {
-  MAX_BPM,
-  MAX_SLIDER_BPM,
-  MIN_BPM,
-  MIN_SLIDER_BPM,
-} from "~/utils/constants";
-import {
-  getBpmFromSliderPosition,
-  getSliderPositionFromBpm,
-} from "~/utils/helpers";
+import { MAX_BPM, MIN_BPM } from "~/utils/constants";
 import { useAppState } from "~/view/context";
 import { StartStopButton } from "~/view/components/Controls";
 
+import { useMetronomeSlider } from "./useMetronomeSlider";
 import { SliderNumberInput } from "./SliderNumberInput";
 import { ThemedSlider } from "./ThemedSlider";
 
 import Grid from "@mui/material/Grid";
 
-import type { ISettings, ISettingsPointer } from "blueldr-react-round-slider";
+import type { ISettings } from "blueldr-react-round-slider";
 
 //================================================
 
@@ -39,57 +32,20 @@ const ButtonContainer = styled("div")`
   z-index: 5;
 `;
 
-const increments: number[] = [];
-for (let i = MIN_SLIDER_BPM; i <= MAX_SLIDER_BPM; i++) {
-  const p = getSliderPositionFromBpm(i);
-  const pPrev = getSliderPositionFromBpm(i - 1);
-  const pNext = getSliderPositionFromBpm(i + 1);
-  if (i === MIN_SLIDER_BPM) {
-    increments.push(pNext - p);
-  } else if (i === MAX_SLIDER_BPM) {
-    increments.push(p - pPrev);
-  } else {
-    const avg = (Math.abs(p - pPrev) + Math.abs(p - pNext)) / 2;
-    increments.push(avg);
-  }
-}
-
-export type MetronomeSliderSingleValueProps = {
-  value: number;
-  onChange: (newValue: number) => void;
-};
-/*export type MetronomeSliderRangeValueProps = {
-}*/
-
 export type MetronomeSliderProps = Omit<
   ISettings,
   "pointers" | "onChange" | "min" | "max" | "step" | "arrowStep"
 >;
 
-export function MetronomeSlider(props: MetronomeSliderProps) {
-  const [, setReRender] = useState(false);
+export function MetronomeSlider({
+  pathRadius = 200,
+  ...props
+}: MetronomeSliderProps) {
+  const isTouchDevice = useMediaQuery("(pointer: coarse)");
   const { setBpm: onChange, state } = useAppState();
   const value = state.tempo.bpm;
 
-  const valueAsPosition = round(getSliderPositionFromBpm(value), 10);
-  const handleChange = (pointers: ISettingsPointer[]) => {
-    const newPosition = pointers[0].value;
-    if (typeof newPosition !== "number") {
-      return;
-    }
-
-    const newValue = getBpmFromSliderPosition(newPosition);
-
-    if (newValue !== value) {
-      onChange(newValue);
-    } else if (valueAsPosition < newPosition) {
-      onChange(Math.min(value + 1, MAX_SLIDER_BPM));
-    } else if (valueAsPosition > newPosition) {
-      onChange(Math.max(value - 1, MIN_SLIDER_BPM));
-    } else {
-      setReRender((v) => !v);
-    }
-  };
+  const sliderProps = useMetronomeSlider(props);
 
   const [hovered, setHovered] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
@@ -105,19 +61,18 @@ export function MetronomeSlider(props: MetronomeSliderProps) {
     }
   }, [showButtons, hideButtons]);
 
-  const step = increments[value - MIN_BPM];
-
   return (
     <Grid
       container
       position="relative"
-      sx={
-        !showButtons
+      sx={{
+        ...(!showButtons && !isTouchDevice
           ? {
               "& .MuiIconButton-root:not(:hover):not(:focus)": { opacity: 0 },
             }
-          : undefined
-      }
+          : undefined),
+        "--slider-radius": 200,
+      }}
       onMouseOver={() => setHovered(true)}
       onMouseOut={() => {
         setHovered(false);
@@ -126,31 +81,8 @@ export function MetronomeSlider(props: MetronomeSliderProps) {
       onMouseMove={() => setShowButtons(true)}
     >
       <ThemedSlider
-        pathStartAngle={120}
-        pathEndAngle={60}
-        min={0}
-        max={getSliderPositionFromBpm(MAX_SLIDER_BPM)}
-        round={10}
-        step={step}
-        arrowStep={step}
-        enableTicks
-        ticksCount={140}
-        ticksGroupSize={5}
-        getText={() => ""}
-        getTickLabel={(v) =>
-          typeof v === "string"
-            ? v
-            : `${Math.round(getBpmFromSliderPosition(v) / 2) * 2}`
-        }
-        {...props}
-        pointers={[
-          {
-            value: getSliderPositionFromBpm(
-              Math.min(MAX_SLIDER_BPM, Math.max(MIN_SLIDER_BPM, value)),
-            ),
-          },
-        ]}
-        onChange={handleChange}
+        {...sliderProps}
+        pathRadius={pathRadius}
         mousewheelDisabled={!hovered}
       />
       <TextContainer>

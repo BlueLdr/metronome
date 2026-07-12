@@ -17,7 +17,7 @@ import type { UseTapTempoOptions } from "~/utils/hooks";
 //================================================
 
 export type TapTempoButtonProps = Partial<UseTapTempoOptions> &
-  Omit<ButtonProps, "startIcon" | "endIcon" | "children"> &
+  Omit<ButtonProps, "startIcon" | "endIcon" | "children" | "size"> &
   (
     | {
         iconOnly?: false;
@@ -25,6 +25,7 @@ export type TapTempoButtonProps = Partial<UseTapTempoOptions> &
         activeChildren?: React.ReactNode;
         icon?: React.ReactNode;
         activeIcon?: React.ReactNode;
+        size?: ButtonProps["size"];
       }
     | {
         iconOnly: true;
@@ -32,6 +33,7 @@ export type TapTempoButtonProps = Partial<UseTapTempoOptions> &
         activeChildren?: React.ReactNode;
         icon: React.ReactNode;
         activeIcon?: React.ReactNode;
+        size?: ButtonProps["size"] | number;
       }
   );
 
@@ -44,6 +46,7 @@ export function TapTempoButton({
   icon,
   activeIcon = icon,
   iconOnly,
+  size,
   ...props
 }: TapTempoButtonProps) {
   const { setButton } = useTapTempoContext();
@@ -67,7 +70,14 @@ export function TapTempoButton({
   const ref = useForkRef(props.ref, setButton);
 
   if (iconOnly) {
-    const scale = props.size === "large" ? 16 : props.size === "small" ? 8 : 12;
+    const scale =
+      typeof size === "number"
+        ? size
+        : size === "large"
+          ? 16
+          : size === "small"
+            ? 8
+            : 12;
     return (
       <Tooltip
         title={
@@ -93,6 +103,7 @@ export function TapTempoButton({
             minWidth: 0,
             minHeight: 0,
             maxHeight: "none",
+            touchAction: "manipulation",
             "& .MuiButton-startIcon": {
               margin: 0,
             },
@@ -117,7 +128,7 @@ export function TapTempoButton({
     <Button
       variant={active ? "contained" : "outlined"}
       disableRipple={false}
-      size="large"
+      size={size}
       {...props}
       ref={ref}
       startIcon={active ? activeIcon : icon}

@@ -1,3 +1,4 @@
+import type { SxStyleProps } from "~/theme";
 import { roundToNearestDiscreteValue } from "~/utils/helpers/math";
 import { RollingAverage } from "~/utils/helpers/rolling-average";
 
@@ -115,3 +116,11 @@ export const joinClassNames = (
     }
     return result ? `${result} ${trimmed}` : trimmed;
   }, undefined);
+
+export const mergeSxProps = (
+  base: SxStyleProps,
+  overrides: SxStyleProps | null | undefined,
+): SxStyleProps => [
+  ...(Array.isArray(base) ? base : [base]),
+  ...(Array.isArray(overrides) ? overrides : overrides ? [overrides] : []),
+];

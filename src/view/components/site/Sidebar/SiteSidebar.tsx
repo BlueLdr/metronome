@@ -1,17 +1,21 @@
-import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { useAppState } from "~/view/context";
+import { SettingsModal } from "~/view/components/Settings";
 
 import { SiteLogo } from "../SiteLogo";
 import { SiteSidebarButton } from "./SiteSidebarButton";
 import { SiteSidebarPresetList } from "./SiteSidebarPresetList";
 
 import AppBar from "@mui/material/AppBar";
-import Divider from "@mui/material/Divider";
-import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import SettingsRounded from "@mui/icons-material/SettingsRounded";
 
 import type { DrawerProps } from "@mui/material/Drawer";
 
@@ -21,8 +25,8 @@ export function SiteSidebar(props: DrawerProps) {
   const { state, setSidebarOpen } = useAppState();
   const sidebarOpen = state.data.state.sidebarOpen;
 
-  const theme = useTheme();
-  const isLg = useMediaQuery(theme.breakpoints.up("lg"));
+  const isLg = useMediaQuery((theme) => theme.breakpoints.up("lg"));
+  const isSm = useMediaQuery((theme) => theme.breakpoints.down("sm"));
 
   return (
     <Drawer
@@ -30,6 +34,7 @@ export function SiteSidebar(props: DrawerProps) {
       sx={{
         ...props.sx,
         maxHeight: "100vh",
+        maxWidth: "100vw",
       }}
       variant={isLg ? "persistent" : "temporary"}
       anchor="left"
@@ -44,13 +49,28 @@ export function SiteSidebar(props: DrawerProps) {
         </Grid>
       </AppBar>
 
-      <Typography p={4} variant="h6">
-        Presets
-      </Typography>
-      <Divider />
       <SiteSidebarPresetList
         sx={{ flexGrow: 1, marginBottom: (theme) => theme.spacing(6) }}
       />
+      {isSm && (
+        <>
+          <Box flexGrow={1} />
+          <List sx={{ justifySelf: "flex-end" }}>
+            <SettingsModal
+              trigger={
+                <ListItemButton>
+                  <ListItemIcon>
+                    <SettingsRounded fontSize="large" />
+                  </ListItemIcon>
+                  <ListItemText slotProps={{ primary: { fontSize: 18 } }}>
+                    Settings
+                  </ListItemText>
+                </ListItemButton>
+              }
+            />
+          </List>
+        </>
+      )}
     </Drawer>
   );
 }

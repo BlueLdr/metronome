@@ -8,12 +8,13 @@ import PlayArrowRounded from "@mui/icons-material/PlayArrowRounded";
 import PauseRounded from "@mui/icons-material/PauseRounded";
 
 import type { FabProps } from "@mui/material/Fab";
+import type { SxStyleProps } from "~/theme";
 
 //================================================
 
-export type StartStopButtonProps = FabProps;
+export type StartStopButtonProps = FabProps & { iconSx?: SxStyleProps };
 
-export function StartStopButton(props: StartStopButtonProps) {
+export function StartStopButton({ iconSx, ...props }: StartStopButtonProps) {
   const { metronome, playing, state } = useAppState();
 
   const rhythm = useMemo(
@@ -33,9 +34,9 @@ export function StartStopButton(props: StartStopButtonProps) {
       {...props}
     >
       {playing ? (
-        <PauseRounded fontSize="large" />
+        <PauseRounded fontSize="large" sx={iconSx} />
       ) : (
-        <PlayArrowRounded fontSize="large" />
+        <PlayArrowRounded fontSize="large" sx={iconSx} />
       )}
     </Fab>
   );

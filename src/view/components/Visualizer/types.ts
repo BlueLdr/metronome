@@ -9,6 +9,8 @@ export type VisualizerNodeHandle = {
   stop: () => void;
 };
 
-export type VisualizerProps = Pick<ButtonProps, "size"> & {
+export type VisualizerProps = {
+  size?: ButtonProps["size"] | number;
   subdivisions?: "separate" | "combined";
+  beats?: "separate" | "combined";
 };

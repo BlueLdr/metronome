@@ -23,6 +23,16 @@ const createMuiThemeForEnvironment =
 export const MuiTheme = createMuiThemeForEnvironment({
   cssVariables: true,
   spacing: 4,
+  breakpoints: {
+    values: {
+      xs: 420,
+      sm: 640,
+      md: 800,
+      lg: 1024,
+      xl: 1440,
+    },
+    step: 10,
+  },
   palette: {
     mode: "dark",
     primary: {
@@ -59,7 +69,13 @@ export const MuiTheme = createMuiThemeForEnvironment({
     },
     MuiButtonBase: {
       defaultProps: {
-        disableRipple: true,
+        // disableRipple: true,
+        onTouchStart: (e) => e.preventDefault(),
+      },
+      styleOverrides: {
+        root: {
+          touchAction: "manipulation",
+        },
       },
     },
     MuiButton: {
@@ -74,9 +90,9 @@ export const MuiTheme = createMuiThemeForEnvironment({
       },
     },
     MuiIconButton: {
-      defaultProps: {
-        disableTouchRipple: true,
-      },
+      // defaultProps: {
+      //   disableTouchRipple: true,
+      // },
       styleOverrides: {
         root: {
           "&:not(:hover):not(:active)": {
@@ -85,11 +101,11 @@ export const MuiTheme = createMuiThemeForEnvironment({
         },
       },
     },
-    MuiButtonGroup: {
-      defaultProps: {
-        disableRipple: true,
-      },
-    },
+    // MuiButtonGroup: {
+    //   defaultProps: {
+    //     disableRipple: true,
+    //   },
+    // },
     MuiFormControl: {
       defaultProps: {
         size: "small",

@@ -1,5 +1,6 @@
 import { NumberField } from "@base-ui/react/number-field";
 import { alpha, styled } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -51,6 +52,7 @@ export type NumberInputProps = NumberField.Root.Props & {
     slotProps?: {
       [K in keyof Required<TextFieldProps>["slotProps"]]?: Exclude<
         Required<TextFieldProps>["slotProps"][K],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (...args: any[]) => any
       >;
     };
@@ -65,10 +67,13 @@ export function NumberInput({
   decrementProps,
   inputProps: inputComponentProps,
   buttonPlacement = "default",
-  disableAutoHideButtons,
+  disableAutoHideButtons: disableAutoHideButtonsProp,
   variant = "ghost",
   ...props
 }: NumberInputProps) {
+  const isTouchDevice = useMediaQuery("(pointer: coarse)");
+  const disableAutoHideButtons = disableAutoHideButtonsProp ?? isTouchDevice;
+
   const ButtonComponent =
     buttonPlacement === "inputEndArrows" ? ArrowButton : Button;
 
@@ -135,21 +140,34 @@ export function NumberInput({
       >
         {buttonPlacement === "default" && decrementButton}
         <NumberField.Input
-          render={(inputProps, state) => (
+          render={(
+            {
+              ref,
+              onBlur,
+              onChange,
+              onKeyUp,
+              onKeyDown,
+              onFocus,
+              ...inputProps
+            },
+            state,
+          ) => (
             <TextField
               variant={variant === "ghost" ? "filled" : variant}
               {...inputComponentProps}
-              inputRef={inputProps.ref}
+              inputRef={ref}
               value={state.inputValue}
-              onBlur={inputProps.onBlur}
-              onChange={inputProps.onChange}
-              onKeyUp={inputProps.onKeyUp}
-              onKeyDown={inputProps.onKeyDown}
-              onFocus={inputProps.onFocus}
+              onBlur={onBlur}
+              onChange={onChange}
+              onKeyUp={onKeyUp}
+              onKeyDown={onKeyDown}
+              onFocus={onFocus}
+              hiddenLabel={!inputComponentProps?.label}
               slotProps={{
                 htmlInput: mergeSlotProps(
                   inputComponentProps?.slotProps?.htmlInput,
                   {
+                    ...inputProps,
                     sx: {
                       fontFamily: "var(--font-number-input)",
                       fontVariationSettings: `"wght" 450, "GRAD" 72, "wdth" 105`,
@@ -186,6 +204,7 @@ export function NumberInput({
                     buttonPlacement === "inputSides" ? (
                       <InputAdornment position="start">
                         {decrementButton}
+                        {startAdornment}
                       </InputAdornment>
                     ) : undefined,
                   endAdornment: buttonPlacement.startsWith("inputEnd") ? (

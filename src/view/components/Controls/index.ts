@@ -1,4 +1,3 @@
-export * from "./Controls";
 export * from "./MasterVolumeSlider";
 export * from "./StartStopButton";
 export * from "./TapTempoButton";

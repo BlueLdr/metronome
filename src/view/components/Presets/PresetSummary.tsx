@@ -36,15 +36,28 @@ export function PresetSummary({
           display="grid"
           gridTemplateColumns="auto auto auto"
           spacing={4}
+          sx={(theme) => ({
+            [theme.breakpoints.down(500)]: {
+              gridTemplateColumns: "auto auto",
+            },
+          })}
         >
-          <Typography>
+          <Typography
+            sx={(theme) => ({
+              [theme.breakpoints.down(500)]: { order: 2 },
+            })}
+          >
             BPM: <strong>{preset.tempo.bpm}</strong>
           </Typography>
           <Typography component="div" display="inline-flex" columnGap=".4em">
             Time signature:{" "}
             <TimeSignatureFractionText timeSignature={preset.timeSignature} />
           </Typography>
-          <Typography>
+          <Typography
+            sx={(theme) => ({
+              [theme.breakpoints.down(500)]: { order: 3 },
+            })}
+          >
             Subdivision: <strong>{preset.subdivisionCount}</strong>
           </Typography>
         </Grid>
