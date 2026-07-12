@@ -33,10 +33,7 @@ function AdvancedSoundSettingsPart({
 
   return (
     <Card variant="elevation" elevation={4}>
-      <CardHeader
-        title={label}
-        slotProps={{ title: { variant: "subtitle1" } }}
-      />
+      <CardHeader title={label} slotProps={{ title: { variant: "h6" } }} />
       <CardContentFlex sx={{ gap: 4 }}>
         <SettingsSoundSelector
           {...(part === "base"
