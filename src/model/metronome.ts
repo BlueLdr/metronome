@@ -131,6 +131,12 @@ export class Metronome {
     const currentTime = this.currentTime;
     const now = Date.now();
 
+    console.log(
+      `scheduledRhythm.notes: `,
+      scheduledRhythm.notes,
+      scheduledRhythm.duration,
+    );
+
     const zeroTime = startTime ?? currentTime + this.frameTime;
     const offset =
       scheduledRhythm.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
@@ -220,28 +226,34 @@ export class Metronome {
     const currentTime = this.currentTime;
     const now = Date.now();
 
-    const [nextNoteInOldRhythm, timeUntilNextNote] = this.getNextNote(
+    let [nextNote, timeUntilNextNote] = this.getNextNote(
       this.scheduledRhythm,
       this.scheduledRhythm.startTime,
       currentTime,
     );
-    let nextNote = nextNoteInOldRhythm;
 
     if (type === RhythmChangeType.measures) {
       const newRhythm = new Rhythm({
         tempo: { bpm: this.bpm, beatDivision: this._beatDivision },
         measures: this.measures,
       });
-      const [nextNoteInNewRhythm] =
+      const [nextNoteInNewRhythm, timeUntilNextNoteNew] =
         nextNote.relativeTimestamp > newRhythm.duration
-          ? [newRhythm.notes[0]]
+          ? [newRhythm.notes[0], timeUntilNextNote]
           : this.getNextNote(
               newRhythm,
               this.scheduledRhythm.startTime,
-              currentTime,
+              Math.max(
+                currentTime + timeUntilNextNote - this.lookaheadTime * 2,
+                currentTime,
+              ),
             );
 
       nextNote = nextNoteInNewRhythm;
+      timeUntilNextNote =
+        nextNote.relativeTimestamp > newRhythm.duration
+          ? timeUntilNextNote
+          : timeUntilNextNote + timeUntilNextNoteNew;
     }
 
     if (timeUntilNextNote < this.lookaheadTime) {

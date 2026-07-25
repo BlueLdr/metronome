@@ -1,4 +1,5 @@
 import { MINUTE } from "~/utils/constants";
+import { getNoteInterval } from "~/utils/helpers";
 
 import { Measure } from "./measure";
 
@@ -60,7 +61,7 @@ export class Rhythm implements IRhythmWithData {
   notes: RhythmNote[];
 
   static nextNote(
-    rhythm: Pick<Rhythm, 'notes'>,
+    rhythm: Pick<Rhythm, "notes">,
     currentNoteOrRelativeTimestamp: RhythmNote | number,
   ) {
     const current =
@@ -79,7 +80,7 @@ export class Rhythm implements IRhythmWithData {
     const notes: RhythmNote[] = [];
 
     for (const note of measure.notes) {
-      const noteDuration = note.interval * wholeNoteDuration;
+      const noteDuration = getNoteInterval(note) * wholeNoteDuration;
       notes.push({
         note,
         duration: noteDuration,

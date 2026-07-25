@@ -1,6 +1,7 @@
-import type { IMeasure, ITempo } from "~/model";
+import type { ITempo } from "~/model";
 import type { Migration } from "~/utils/migration";
 import type { AppData } from "~/utils/types";
+import type { IMeasure_0_0_1 } from "./0.0.1";
 
 //================================================
 
@@ -11,7 +12,7 @@ const NEW_VERSION = "0.0.3" as const;
 
 export type AppMainState_0_0_2 = {
   version: typeof OLD_VERSION;
-  rhythm: IMeasure;
+  rhythm: IMeasure_0_0_1;
   measures?: never;
   tempo: ITempo;
   volume: number;
@@ -22,7 +23,7 @@ export type AppMainState_0_0_2 = {
 
 export type AppMainState_0_0_3 = {
   version: typeof NEW_VERSION;
-  measures: IMeasure[];
+  measures: IMeasure_0_0_1[];
   rhythm?: never;
   tempo: ITempo;
   volume: number;

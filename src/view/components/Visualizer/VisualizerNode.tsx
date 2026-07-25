@@ -3,7 +3,10 @@
 import { alpha, keyframes, styled } from "@mui/material/styles";
 import { useImperativeHandle, useState } from "react";
 
-import { getNoteStartTimeOffsetInScheduledRhythm } from "~/utils/helpers";
+import {
+  getNoteInterval,
+  getNoteStartTimeOffsetInScheduledRhythm,
+} from "~/utils/helpers";
 
 import { useForkRef } from "@mui/material/utils";
 
@@ -307,6 +310,7 @@ export function VisualizerNode({
   const isBeat = index === beat?.noteIndex;
 
   const note = measure.notes[index];
+  const noteInterval = getNoteInterval(note);
 
   useImperativeHandle<VisualizerNodeHandle, VisualizerNodeHandle>(
     (handle) => handleRef(index, handle),
@@ -326,10 +330,10 @@ export function VisualizerNode({
   const ownerState: VisualizerNodeOwnerState = {
     size,
     beatDuration:
-      (beat ? beat.totalInterval : note.interval) /
+      (beat ? beat.totalInterval : noteInterval) /
       (measure.timeSignature.count / measure.timeSignature.division),
     noteDuration:
-      note.interval /
+      noteInterval /
       (measure.timeSignature.count / measure.timeSignature.division),
     isBeat,
     isOnlyPulse:

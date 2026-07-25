@@ -1,7 +1,9 @@
 import { MINUTE } from "~/utils/constants";
+import { getNoteInterval } from "~/utils/helpers";
 
 import { Sound } from "./sound";
 
+import type { NoteDivision } from "~/utils/types";
 import type { ISound } from "./sound";
 
 //================================================
@@ -9,19 +11,25 @@ import type { ISound } from "./sound";
 export interface INote {
   volume: number;
   sound: ISound;
-  interval: number;
+  division: NoteDivision;
+  tuplet?: number;
+  dotted?: 0 | 1 | 2;
 }
 
 export class Note implements INote {
   constructor(index: number, config: INote, onInitSound?: () => void) {
     this.index = index;
-    this.interval = config.interval;
+    this.division = config.division;
     this._volume = config.volume;
     this.sound = new Sound(config.sound, onInitSound);
+    this.tuplet = config.tuplet;
+    this.dotted = config.dotted;
   }
 
   readonly index: number;
-  readonly interval: number;
+  readonly division: NoteDivision;
+  readonly tuplet?: number;
+  readonly dotted?: INote["dotted"];
   private gainNode: GainNode | undefined = undefined;
   private sourceBuffer: AudioBuffer | undefined = undefined;
 
@@ -80,14 +88,20 @@ export class Note implements INote {
     const beatDuration = MINUTE / bpm;
     const beatValue = 1 / beatDivision;
 
-    return (this.interval / beatValue) * beatDuration;
+    return (getNoteInterval(this) / beatValue) * beatDuration;
+  }
+
+  get interval() {
+    return getNoteInterval(this);
   }
 
   toJSON() {
     return {
       volume: this.volume,
-      interval: this.interval,
+      division: this.division,
       sound: this.sound,
+      tuplet: this.tuplet,
+      dotted: this.dotted || undefined,
     };
   }
 }
