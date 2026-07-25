@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 
-import { Metronome, Rhythm } from "~/model";
+import { Metronome, Measure } from "~/model";
 import {
   APP_MAIN_STATE_STORAGE_KEY,
   BPM_CHANGE_THROTTLE_INTERVAL,
   DEFAULT_BEAT_DIVISION,
   DEFAULT_BPM,
   DEFAULT_MAIN_STATE,
-  DEFAULT_RHYTHM,
+  DEFAULT_MEASURE,
   DEFAULT_VOLUME,
   VOLUME_CHANGE_THROTTLE_INTERVAL,
 } from "~/utils/constants";
@@ -17,7 +17,7 @@ import { AppContext } from "./context";
 import { appMainStateReducer } from "./reducer";
 
 import type { MetronomePreset, SoundSettings } from "~/utils/types";
-import type { TimeSignature, IRhythm } from "~/model";
+import type { TimeSignature, IMeasure } from "~/model";
 import type { AppContextState } from "./context";
 import type { AppStateSetSoundAction } from "./reducer";
 
@@ -128,11 +128,14 @@ export function AppContextProvider({ children }: React.PropsWithChildren) {
   );
 
   useThrottledUpdate(
-    (value: IRhythm) =>
-      metronome.setRhythm(new Rhythm(value.timeSignature, value.notes)),
+    (value: IMeasure[]) =>
+      metronome.setMeasures(
+        value.map((m) => new Measure(m.timeSignature, m.notes)),
+      ),
     BPM_CHANGE_THROTTLE_INTERVAL,
     [metronome],
-    state.rhythm ?? DEFAULT_RHYTHM,
+    state.measures ?? DEFAULT_MEASURE,
+    JSON.stringify,
   );
 
   const value = useMemo<AppContextState>(

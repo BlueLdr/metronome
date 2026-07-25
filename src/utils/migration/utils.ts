@@ -1,5 +1,5 @@
-import type { AnyAppMainStateVersion } from "~/utils/migration/migrations";
-import type { Migration, Version } from "./types";
+import type { AnyMigration, AnyAppMainStateVersion } from "./migrations";
+import type { Version } from "./types";
 
 //================================================
 
@@ -14,13 +14,8 @@ export const versionComparator = <T extends Version>(a: T, b: T) => {
   return isNaN(result) ? 0 : result;
 };
 
-export const migrationIsForDataVersion = <
-  OldData extends AnyAppMainStateVersion & { version: OldVersion },
-  NewData extends AnyAppMainStateVersion & { version: NewVersion },
-  OldVersion = Version,
-  NewVersion = Version,
->(
+export const migrationIsForDataVersion = <OldVersion extends Version>(
   data: AnyAppMainStateVersion,
-  migration: Migration<OldData, NewData, OldVersion, NewVersion>,
+  migration: AnyMigration & { oldVersion: OldVersion },
 ): data is Parameters<typeof migration>[0] =>
   data.version === migration.oldVersion;

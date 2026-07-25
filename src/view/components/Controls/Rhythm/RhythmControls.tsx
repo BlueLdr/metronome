@@ -8,7 +8,7 @@ export function RhythmControls() {
   const { state, setTimeSignature } = useAppState();
   return (
     <TimeSignatureControl
-      value={state.rhythm.timeSignature}
+      value={state.measures[0].timeSignature}
       onChange={setTimeSignature}
     />
   );

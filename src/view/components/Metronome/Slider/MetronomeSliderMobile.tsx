@@ -32,7 +32,10 @@ const CenterContent = styled("div")`
   transform: translate(-50%, calc(-50% - 3px));
   z-index: -1;
   & .MuiVisualizerNode-root {
-    border-color: transparent !important;
+    &,
+    &::after {
+      border-color: transparent !important;
+    }
   }
 `;
 

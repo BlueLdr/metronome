@@ -1,12 +1,12 @@
-import { Rhythm } from "~/model";
+import { Measure } from "~/model";
 
 import { isInt } from "./math";
 
 import type {
   ITempo,
-  IRhythm,
+  IMeasure,
   IBeat,
-  ScheduledMeasure,
+  ScheduledRhythm,
   TimeSignature,
   INote,
 } from "~/model";
@@ -17,13 +17,13 @@ import type { MetronomePreset, SoundSettings } from "~/utils/types";
 export const isTuplet = (count: number, division: number) =>
   count > 2 && !isInt(division / count);
 
-export const calculateBeats = (rhythm: IRhythm): (IBeat | undefined)[] => {
+export const calculateBeats = (measure: IMeasure): (IBeat | undefined)[] => {
   let currentBeat: IBeat;
   let beatIndex = 0;
   const beats: (IBeat | undefined)[] = [];
   let duration = 0;
 
-  rhythm.notes.forEach((note, index) => {
+  measure.notes.forEach((note, index) => {
     if (isInt(duration)) {
       currentBeat = {
         noteIndex: index,
@@ -38,30 +38,30 @@ export const calculateBeats = (rhythm: IRhythm): (IBeat | undefined)[] => {
       currentBeat.notes.push(note);
       beats.push(undefined);
     }
-    duration += note.interval * rhythm.timeSignature.division;
+    duration += note.interval * measure.timeSignature.division;
   });
 
   return beats;
 };
 
-export const getNoteStartTimeOffsetInScheduledMeasure = (
-  measure: ScheduledMeasure,
+export const getNoteStartTimeOffsetInScheduledRhythm = (
+  rhythm: ScheduledRhythm,
   noteIndex: number,
   startingNoteIndex = 0,
 ) => {
-  const relativeStartTime = measure.notes[noteIndex].relativeTimestamp;
+  const relativeStartTime = rhythm.notes[noteIndex].relativeTimestamp;
   if (startingNoteIndex === 0) {
     return relativeStartTime;
   }
-  const offset = measure.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
+  const offset = rhythm.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
   const startTimeOffsetRaw = relativeStartTime - offset;
 
   return startTimeOffsetRaw < 0
-    ? startTimeOffsetRaw + measure.duration
+    ? startTimeOffsetRaw + rhythm.duration
     : startTimeOffsetRaw;
 };
 
-export const createRhythm = (
+export const createMeasure = (
   timeSignature: TimeSignature,
   soundSettings: SoundSettings,
   subdivisions = 1,
@@ -81,7 +81,7 @@ export const createRhythm = (
     });
   }
 
-  return new Rhythm(timeSignature, newNotes);
+  return new Measure(timeSignature, newNotes);
 };
 
 export const buildPresetId = (
@@ -93,18 +93,23 @@ export const buildPresetId = (
   `${timeSignature.count}-${timeSignature.division}_${subdivisionCount}_${tempo.bpm}-${tempo.beatDivision}_${name}`;
 
 export const buildPreset = (
-  rhythm: IRhythm,
+  measure: IMeasure,
   tempo: ITempo,
   name: string,
 ): MetronomePreset => {
-  const subdivisionCount = rhythm.notes.length / rhythm.timeSignature.count;
-  const id = buildPresetId(rhythm.timeSignature, tempo, subdivisionCount, name);
+  const subdivisionCount = measure.notes.length / measure.timeSignature.count;
+  const id = buildPresetId(
+    measure.timeSignature,
+    tempo,
+    subdivisionCount,
+    name,
+  );
 
   return {
     id,
     name,
     tempo,
-    timeSignature: rhythm.timeSignature,
+    timeSignature: measure.timeSignature,
     subdivisionCount,
   };
 };

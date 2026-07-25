@@ -2,7 +2,7 @@ import set from "lodash/fp/set";
 
 import { Sound } from "~/model";
 import { MAX_BPM, MIN_BPM } from "~/utils/constants";
-import { createRhythm } from "~/utils/helpers";
+import { createMeasure } from "~/utils/helpers";
 
 import type { TimeSignature } from "~/model";
 import type {
@@ -76,11 +76,11 @@ export function appMainStateReducer(
     case "set-time-signature":
       return {
         ...state,
-        rhythm: createRhythm(
-          resolveNewState(action.parameters.value, state.rhythm.timeSignature),
-          state.data.settings.sounds,
-          Math.round(
-            state.rhythm.notes.length / state.rhythm.timeSignature.count,
+        measures: state.measures.map((m) =>
+          createMeasure(
+            resolveNewState(action.parameters.value, m.timeSignature),
+            state.data.settings.sounds,
+            Math.round(m.notes.length / m.timeSignature.count),
           ),
         ),
       };
@@ -88,14 +88,14 @@ export function appMainStateReducer(
     case "set-subdivisions":
       return {
         ...state,
-        rhythm: createRhythm(
-          state.rhythm.timeSignature,
-          state.data.settings.sounds,
-          Math.round(
-            resolveNewState(
-              action.parameters.value,
-              Math.round(
-                state.rhythm.notes.length / state.rhythm.timeSignature.count,
+        measures: state.measures.map((m) =>
+          createMeasure(
+            m.timeSignature,
+            state.data.settings.sounds,
+            Math.round(
+              resolveNewState(
+                action.parameters.value,
+                Math.round(m.notes.length / m.timeSignature.count),
               ),
             ),
           ),
@@ -121,11 +121,11 @@ export function appMainStateReducer(
       );
       return {
         ...newState,
-        rhythm: createRhythm(
-          newState.rhythm.timeSignature,
-          newState.data.settings.sounds,
-          Math.round(
-            newState.rhythm.notes.length / newState.rhythm.timeSignature.count,
+        measures: state.measures.map((m) =>
+          createMeasure(
+            m.timeSignature,
+            newState.data.settings.sounds,
+            Math.round(m.notes.length / m.timeSignature.count),
           ),
         ),
       };
@@ -142,11 +142,11 @@ export function appMainStateReducer(
       );
       return {
         ...newState,
-        rhythm: createRhythm(
-          newState.rhythm.timeSignature,
-          newState.data.settings.sounds,
-          Math.round(
-            newState.rhythm.notes.length / newState.rhythm.timeSignature.count,
+        measures: state.measures.map((m) =>
+          createMeasure(
+            m.timeSignature,
+            newState.data.settings.sounds,
+            Math.round(m.notes.length / m.timeSignature.count),
           ),
         ),
       };
@@ -161,11 +161,11 @@ export function appMainStateReducer(
 
       return {
         ...newState,
-        rhythm: createRhythm(
-          newState.rhythm.timeSignature,
-          newState.data.settings.sounds,
-          Math.round(
-            newState.rhythm.notes.length / newState.rhythm.timeSignature.count,
+        measures: state.measures.map((m) =>
+          createMeasure(
+            m.timeSignature,
+            newState.data.settings.sounds,
+            Math.round(m.notes.length / m.timeSignature.count),
           ),
         ),
       };
@@ -196,14 +196,14 @@ export function appMainStateReducer(
 
     case "load-preset": {
       const preset = action.parameters.value;
-      const rhythm = createRhythm(
+      const measure = createMeasure(
         preset.timeSignature,
         state.data.settings.sounds,
         preset.subdivisionCount,
       );
       return {
         ...state,
-        rhythm,
+        measures: [measure],
         tempo: preset.tempo,
       };
     }

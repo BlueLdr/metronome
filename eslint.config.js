@@ -55,9 +55,6 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
-    rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-    },
   },
   importCompat.config({
     plugins: ["import"],
@@ -140,4 +137,10 @@ export default defineConfig([
       "import/extensions": [".ts", ".tsx"],
     },
   }),
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
 ]);

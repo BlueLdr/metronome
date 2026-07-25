@@ -1,10 +1,10 @@
 import type { ButtonProps } from "@mui/material/Button";
-import type { MetronomeMeasureStartedEvent } from "~/model";
+import type { MetronomeRhythmStartedEvent } from "~/model";
 
 //================================================
 
 export type VisualizerNodeHandle = {
-  setDelay: (event: MetronomeMeasureStartedEvent) => void;
+  setDelay: (event: MetronomeRhythmStartedEvent) => void;
   start: () => void;
   stop: () => void;
 };

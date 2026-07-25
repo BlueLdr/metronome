@@ -1,4 +1,4 @@
-import type { IRhythm, ISound, ITempo, TimeSignature } from "~/model";
+import type { IMeasure, ISound, ITempo, TimeSignature } from "~/model";
 import type { Version } from "../migration/types";
 import type { KeybindSettings } from "./keybinds";
 
@@ -29,7 +29,7 @@ export type AppData = {
 
 export type AppMainState = {
   version: Version;
-  rhythm: IRhythm;
+  measures: IMeasure[];
   tempo: ITempo;
   volume: number;
   data: AppData;

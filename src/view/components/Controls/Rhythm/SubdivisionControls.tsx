@@ -10,7 +10,7 @@ import Grid from "@mui/material/Grid";
 export function SubdivisionControls() {
   const { setSubdivisions, state } = useAppState();
   const subdivisions =
-    state.rhythm.notes.length / state.rhythm.timeSignature.count;
+    state.measures[0].notes.length / state.measures[0].timeSignature.count;
 
   return (
     <Grid
@@ -43,7 +43,7 @@ export function SubdivisionControls() {
           }}
         >
           <SubdivisionVisualizer
-            timeSignatureDivision={state.rhythm.timeSignature.division}
+            timeSignatureDivision={state.measures[0].timeSignature.division}
             value={subdivisions}
             sx={{
               fontSize: (theme) => theme.typography.h3.fontSize,

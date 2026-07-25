@@ -8,7 +8,7 @@ import { TimeSignatureText } from "./TimeSignatureText";
 import Box from "@mui/material/Box";
 
 import type { NoteDivision } from "~/utils/types";
-import type { IRhythm, ITempo } from "~/model";
+import type { IMeasure, ITempo } from "~/model";
 import type { MusicTextProps } from "./MusicText";
 
 //================================================
@@ -17,17 +17,17 @@ const spaceNarrow = { value: "  " };
 const space = { value: "    " };
 
 export type RhythmStaffProps = {
-  rhythm: IRhythm;
+  measure: IMeasure;
   tempo: ITempo;
 } & Omit<MusicTextProps, "children" | "useAltFont">;
 
-export function RhythmStaff({ rhythm, tempo, ...props }: RhythmStaffProps) {
+export function RhythmStaff({ measure, tempo, ...props }: RhythmStaffProps) {
   const noteDivision =
     Math.pow(
       2,
-      Math.floor(Math.log2(rhythm.notes.length / rhythm.timeSignature.count)),
-    ) * rhythm.timeSignature.division;
-  const noteCount = rhythm.notes.length / rhythm.timeSignature.count;
+      Math.floor(Math.log2(measure.notes.length / measure.timeSignature.count)),
+    ) * measure.timeSignature.division;
+  const noteCount = measure.notes.length / measure.timeSignature.count;
 
   const verticalOffset =
     noteDivision <= 32
@@ -84,7 +84,7 @@ export function RhythmStaff({ rhythm, tempo, ...props }: RhythmStaffProps) {
         ]}
       </MusicText>
       <TimeSignatureText
-        timeSignature={rhythm.timeSignature}
+        timeSignature={measure.timeSignature}
         sx={{
           top: `calc(2.5em / -18)`,
         }}

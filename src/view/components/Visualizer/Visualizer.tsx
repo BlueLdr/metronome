@@ -8,7 +8,7 @@ import { VisualizerNode } from "./VisualizerNode";
 
 import Grid from "@mui/material/Grid";
 
-import type { MetronomeMeasureStartedEvent } from "~/model";
+import type { MetronomeRhythmStartedEvent } from "~/model";
 import type { VisualizerNodeHandle, VisualizerProps } from "./types";
 
 //================================================
@@ -23,7 +23,7 @@ export function Visualizer({
   const [nodes, setNodes] = useState<Map<number, VisualizerNodeHandle | null>>(
     () => new Map(),
   );
-  const originalMeasureDuration = useRef<number | undefined>(undefined);
+  const originalRhythmDuration = useRef<number | undefined>(undefined);
 
   const nodeRef = useCallback(
     (index: number, handle: VisualizerNodeHandle | null) => {
@@ -38,37 +38,44 @@ export function Visualizer({
 
   const nodesRef = useValueRef(nodes);
   useEffect(() => {
-    const listener = (e: MetronomeMeasureStartedEvent) => {
+    const listener = (e: MetronomeRhythmStartedEvent) => {
       if (!rootRef) {
         return;
       }
-      rootRef.style.setProperty(
-        "--visualizer-measure-duration",
-        `${e.measure.duration}ms`,
-      );
       nodesRef.current.forEach((handle) => {
-        handle?.setDelay(e);
-        handle?.start();
+        handle?.stop();
+      });
+      rootRef.style.setProperty(
+        "--visualizer-rhythm-duration",
+        `${e.rhythm.duration}ms`,
+      );
+      requestAnimationFrame(() => {
+        nodesRef.current.forEach((handle) => {
+          handle?.setDelay(e);
+          handle?.start();
+        });
       });
     };
 
     const stopListener = () => {
-      originalMeasureDuration.current = undefined;
+      originalRhythmDuration.current = undefined;
       nodesRef.current.forEach((handle) => {
         handle?.stop();
       });
     };
-    metronome.on("measure-started", listener);
+    metronome.on("rhythm-started", listener);
     metronome.on("stop", stopListener);
     return () => {
-      metronome.off("measure-started", listener);
+      metronome.off("rhythm-started", listener);
       metronome.off("stop", stopListener);
     };
   }, [metronome, rootRef, nodesRef]);
 
-  const beats = useMemo(() => calculateBeats(state.rhythm), [state.rhythm]);
+  const beats = useMemo(
+    () => calculateBeats(state.measures[0]),
+    [state.measures],
+  );
   const combineBeats = beatsLayout === "combined";
-  console.log(`beats: `, beats);
 
   return (
     <Grid
@@ -79,7 +86,7 @@ export function Visualizer({
       gap={4}
       ref={setRootRef}
     >
-      {state.rhythm.notes.map((_, index) =>
+      {state.measures[0].notes.map((_, index) =>
         !beats[index] &&
         (subdivisions !== "separate" || combineBeats) ? null : (
           <VisualizerNode
@@ -87,7 +94,7 @@ export function Visualizer({
             handleRef={nodeRef}
             beat={beats[index]}
             index={index}
-            rhythm={state.rhythm}
+            measure={state.measures[0]}
             size={size}
             subdivisions={
               combineBeats && subdivisions === "separate"

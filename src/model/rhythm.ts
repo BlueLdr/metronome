@@ -1,88 +1,86 @@
 import { MINUTE } from "~/utils/constants";
 
-import { Note } from "./note";
+import { Measure } from "./measure";
 
-import type { NoteDivision } from "~/utils/types";
-import type { ITempo, Measure } from "./measure";
-import type { INote } from "./note";
+import type { IMeasure } from "./measure";
+import type { Note } from "./note";
 
 //================================================
 
-export interface TimeSignature {
-  count: number;
-  division: NoteDivision;
+export interface ITempo {
+  bpm: number;
+  beatDivision: number;
+}
+
+export interface RhythmNote {
+  note: Note;
+  relativeTimestamp: number;
+  duration: number;
 }
 
 export interface IRhythm {
-  timeSignature: TimeSignature;
-  notes: INote[];
+  measures: IMeasure[];
+  tempo: ITempo;
 }
 
-export class Rhythm implements IRhythm {
-  constructor(timeSignature: TimeSignature, notes: INote[]) {
-    this.timeSignature = timeSignature;
-    this.notePromises = [];
-    this.notes = this.initializeNotes(notes);
+export interface IRhythmWithData extends IRhythm {
+  duration: number;
+  notes: RhythmNote[];
+}
+
+export interface RhythmNoteWithSource extends RhythmNote {
+  source: AudioBufferSourceNode;
+}
+
+export interface IRhythmWithSources extends Omit<IRhythmWithData, "notes"> {
+  notes: RhythmNoteWithSource[];
+}
+
+export class Rhythm implements IRhythmWithData {
+  constructor(config: IRhythm) {
+    this.measures = config.measures.map(
+      (measure) => new Measure(measure.timeSignature, measure.notes),
+    );
+    this.tempo = config.tempo;
+    this.duration = this.measures.reduce(
+      (total, measure) => total + measure.getMeasureDuration(this.tempo),
+      0,
+    );
+    this.notes = this.measures.reduce(
+      (notes, measure) => [
+        ...notes,
+        ...Rhythm.getRhythmNotesFromMeasure(measure, this.tempo),
+      ],
+      [] as RhythmNote[],
+    );
+  }
+  measures: Measure[];
+  tempo: ITempo;
+  duration: number;
+  notes: RhythmNote[];
+
+  static nextNote(
+    rhythm: Pick<Rhythm, 'notes'>,
+    currentNoteOrRelativeTimestamp: RhythmNote | number,
+  ) {
+    const current =
+      typeof currentNoteOrRelativeTimestamp === "number"
+        ? currentNoteOrRelativeTimestamp
+        : currentNoteOrRelativeTimestamp.relativeTimestamp;
+    return (
+      rhythm.notes.find((n) => n.relativeTimestamp > current) ?? rhythm.notes[0]
+    );
   }
 
-  readonly timeSignature: TimeSignature;
-  readonly notes: Note[];
-
-  private notePromises: Promise<void>[];
-
-  private initializeNotes(defs: INote[]): Note[] {
-    const notes: Note[] = [];
-    let i = 0;
-    for (const def of defs) {
-      const resolveRef: { current: (...args: undefined[]) => void } = {
-        current: () => undefined,
-      };
-      const promise = new Promise<void>((resolve) => {
-        resolveRef.current = resolve;
-      });
-      this.notePromises.push(promise);
-      notes.push(new Note(i, def, () => resolveRef.current()));
-      i += 1;
-    }
-
-    return notes;
-  }
-
-  waitForInit() {
-    return Promise.allSettled(this.notePromises);
-  }
-
-  nextNote(current: number | Note) {
-    const index = typeof current === "number" ? current : current.index;
-    if (index === this.notes.length - 1) {
-      return this.notes[0];
-    }
-    return this.notes[index + 1];
-  }
-
-  getMeasureDuration(tempo: ITempo) {
-    const { bpm, beatDivision } = tempo;
-    const beatValueDuration = MINUTE / bpm;
-    const beatDuration =
-      beatValueDuration * (beatDivision / this.timeSignature.division);
-    return beatDuration * this.timeSignature.count;
-  }
-
-  getMeasure(tempo: ITempo) {
-    const duration = this.getMeasureDuration(tempo);
+  static getRhythmNotesFromMeasure(measure: Measure, tempo: ITempo) {
     const wholeNoteDuration = (MINUTE / tempo.bpm) * tempo.beatDivision;
 
     let curTime = 0;
-    const schedule: Measure = {
-      rhythm: this,
-      tempo,
-      duration,
-      notes: [],
-    };
+    const notes: RhythmNote[] = [];
 
-    for (const note of this.notes) {
+    for (const note of measure.notes) {
       const noteDuration = note.interval * wholeNoteDuration;
-      schedule.notes.push({
+      notes.push({
         note,
         duration: noteDuration,
         relativeTimestamp: curTime,
@@ -91,6 +89,13 @@ export class Rhythm implements IRhythm {
       curTime += noteDuration;
     }
 
-    return schedule;
+    return notes;
+  }
+
+  toJSON() {
+    return {
+      measures: this.measures.map((m) => m.toJSON()),
+      tempo: this.tempo,
+    };
   }
 }

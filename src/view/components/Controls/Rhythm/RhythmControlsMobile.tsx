@@ -15,7 +15,7 @@ export function RhythmControlsMobile() {
   const isXs = useMediaQuery((theme) => theme.breakpoints.between(400, "sm"));
   const { setSubdivisions, setTimeSignature, state } = useAppState();
   const subdivisions =
-    state.rhythm.notes.length / state.rhythm.timeSignature.count;
+    state.measures[0].notes.length / state.measures[0].timeSignature.count;
 
   return (
     <Grid
@@ -54,7 +54,7 @@ export function RhythmControlsMobile() {
         })}
       >
         <TimeSignatureControl
-          value={state.rhythm.timeSignature}
+          value={state.measures[0].timeSignature}
           onChange={setTimeSignature}
           buttonPlacement="inputSides"
           fontSize={isXs ? 56 : 72}
@@ -102,7 +102,7 @@ export function RhythmControlsMobile() {
             }}
           >
             <SubdivisionVisualizer
-              timeSignatureDivision={state.rhythm.timeSignature.division}
+              timeSignatureDivision={state.measures[0].timeSignature.division}
               value={subdivisions}
               sx={{
                 fontSize: (theme) => theme.typography.h4.fontSize,

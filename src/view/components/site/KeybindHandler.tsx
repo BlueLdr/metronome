@@ -1,7 +1,7 @@
 import { values } from "lodash";
 import { useEffect } from "react";
 
-import { Rhythm } from "~/model";
+import { Measure } from "~/model";
 import {
   METRONOME_CONTAINER_ID,
   VOLUME_INTERVAL,
@@ -38,7 +38,7 @@ export function KeybindHandler() {
       metronome.playing
         ? metronome.stop()
         : metronome.start(
-            new Rhythm(state.rhythm.timeSignature, state.rhythm.notes),
+            state.measures.map((m) => new Measure(m.timeSignature, m.notes)),
           ),
 
     [KeybindAction.BpmUp]: () => setBpm((prev) => prev + 1),
