@@ -1,5 +1,5 @@
 import { DEFAULT_SOUND_SETTINGS } from "~/utils/constants";
-import { createRhythm } from "~/utils/helpers";
+import { createMeasure } from "~/utils/helpers";
 import {
   RhythmStaff,
   TimeSignatureFractionText,
@@ -63,7 +63,7 @@ export function PresetSummary({
         </Grid>
         <Grid mx="auto" width="fit-content">
           <RhythmStaff
-            rhythm={createRhythm(
+            measure={createMeasure(
               preset.timeSignature,
               DEFAULT_SOUND_SETTINGS,
               preset.subdivisionCount,

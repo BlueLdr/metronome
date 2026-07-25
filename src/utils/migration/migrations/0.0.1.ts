@@ -1,6 +1,6 @@
 import { DEFAULT_MISC_STATE } from "~/utils/constants";
 
-import type { IRhythm, ITempo } from "~/model";
+import type { IMeasure, ITempo, TimeSignature } from "~/model";
 import type { Migration } from "~/utils/migration";
 import type { AppSettings } from "~/utils/types";
 
@@ -17,7 +17,7 @@ type AppData_0_0_1 = {
 
 export type AppMainState_0_0_1 = {
   version: typeof OLD_VERSION;
-  rhythm: IRhythm;
+  rhythm: IMeasure;
   tempo: ITempo;
   volume: number;
   data: AppData_0_0_1;
@@ -28,8 +28,9 @@ export type AppMainState_0_0_1 = {
 type MetronomePreset = {
   id: string;
   name: string;
-  rhythm: IRhythm;
+  timeSignature: TimeSignature;
   tempo: ITempo;
+  subdivisionCount: number;
 };
 
 type AppMiscState_0_0_2 = {
@@ -44,7 +45,7 @@ type AppData_0_0_2 = {
 
 export type AppMainState_0_0_2 = {
   version: typeof NEW_VERSION;
-  rhythm: IRhythm;
+  rhythm: IMeasure;
   tempo: ITempo;
   volume: number;
   data: AppData_0_0_2;

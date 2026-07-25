@@ -10,7 +10,7 @@ import type {
   KeybindSettings,
   SoundSettings,
 } from "~/utils/types";
-import type { IRhythm, ISound, ITempo, TimeSignature } from "~/model";
+import type { IMeasure, ISound, ITempo, TimeSignature } from "~/model";
 
 //================================================
 
@@ -105,7 +105,7 @@ export const DEFAULT_VOLUME = 0.5;
 export const DEFAULT_TAP_TEMPO_SAMPLE_SIZE = 6;
 
 export const DEFAULT_TIME_SIGNATURE: TimeSignature = { count: 4, division: 4 };
-export const DEFAULT_RHYTHM: IRhythm = {
+export const DEFAULT_MEASURE: IMeasure = {
   timeSignature: DEFAULT_TIME_SIGNATURE,
   notes: [
     {
@@ -133,7 +133,7 @@ export const DEFAULT_RHYTHM: IRhythm = {
 
 export const DEFAULT_MAIN_STATE: AppMainState = {
   version: import.meta.env.VITE_APP_VERSION,
-  rhythm: DEFAULT_RHYTHM,
+  measures: [DEFAULT_MEASURE],
   tempo: DEFAULT_TEMPO,
   volume: DEFAULT_VOLUME,
   data: DEFAULT_DATA,

@@ -3,10 +3,11 @@ import { TimerWorkerApi } from "~/workers/timer";
 
 import { Note } from "./note";
 import { Player } from "./player";
+import { Measure } from "./measure";
 import { Rhythm } from "./rhythm";
 
 import type { TimerWorkerTimeoutEvent } from "~/workers/timer";
-import type { MeasureWithSources } from "./measure";
+import type { IRhythmWithData, IRhythmWithSources } from "./rhythm";
 import type { INote } from "./note";
 
 //================================================
@@ -17,8 +18,13 @@ export interface MetronomeOptions {
   setPlaying: (value: boolean) => void;
 }
 
-export interface ScheduledMeasure extends MeasureWithSources {
+export interface ScheduledRhythm extends IRhythmWithSources {
   startTime: number;
+}
+
+enum RhythmChangeType {
+  measures,
+  tempo,
 }
 
 //================================================
@@ -35,7 +41,7 @@ export class Metronome {
     this.timer.on("timeout", (e) => this.onTimeout(e));
     this.listeners = {
       "note-played": new Set(),
-      "measure-started": new Set(),
+      "rhythm-started": new Set(),
       stop: new Set(),
     };
 
@@ -47,7 +53,7 @@ export class Metronome {
   }
 
   private player: Player;
-  private rhythm: Rhythm | undefined = undefined;
+  private measures: Measure[] | undefined = undefined;
   private bpm: number;
   private _beatDivision: number;
 
@@ -56,20 +62,20 @@ export class Metronome {
   private frameTime: number = 1000 / 60;
   private nextNoteIndexAfterTempoChange: number | undefined = undefined;
 
-  private _scheduledMeasure: ScheduledMeasure | undefined = undefined;
-  private get scheduledMeasure() {
-    return this._scheduledMeasure;
+  private _scheduledRhythm: ScheduledRhythm | undefined = undefined;
+  private get scheduledRhythm() {
+    return this._scheduledRhythm;
   }
-  private set scheduledMeasure(value: ScheduledMeasure | undefined) {
-    if (this._scheduledMeasure) {
-      this._scheduledMeasure.notes.forEach((note) => {
+  private set scheduledRhythm(value: ScheduledRhythm | undefined) {
+    if (this._scheduledRhythm) {
+      this._scheduledRhythm.notes.forEach((note) => {
         note.source.stop();
       });
       if (this.frame) {
         cancelAnimationFrame(this.frame);
       }
     }
-    this._scheduledMeasure = value;
+    this._scheduledRhythm = value;
   }
 
   private _playing: boolean;
@@ -98,52 +104,55 @@ export class Metronome {
     return Math.max(this.frameTime * 2, 20);
   }
 
-  private async scheduleMeasure(
-    rhythm: Rhythm,
+  private async scheduleRhythm(
+    measures: Measure[],
     startTime?: number,
     startingNoteIndex = 0,
   ) {
-    if (this.scheduledMeasure) {
+    if (this.scheduledRhythm) {
       if (!startTime) {
         console.warn(
-          "[Player] Clearing scheduled measure to schedule a new measure",
+          "[Player] Clearing scheduled rhythm to schedule a new rhythm",
         );
       }
-      this.scheduledMeasure = undefined;
+      this.scheduledRhythm = undefined;
     }
-    const measure = rhythm.getMeasure({
-      bpm: this.bpm,
-      beatDivision: this._beatDivision,
+    const rhythm = new Rhythm({
+      measures,
+      tempo: {
+        bpm: this.bpm,
+        beatDivision: this._beatDivision,
+      },
     });
-    const scheduledMeasure = await rhythm
-      .waitForInit()
-      .then(() => this.player.getSourcesForMeasure(measure));
+    const scheduledRhythm = await Promise.allSettled(
+      measures.map((m) => m.waitForInit()),
+    ).then(() => this.player.getSourcesForRhythm(rhythm));
 
     const currentTime = this.currentTime;
     const now = Date.now();
 
     const zeroTime = startTime ?? currentTime + this.frameTime;
     const offset =
-      scheduledMeasure.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
-    scheduledMeasure.notes.forEach((note) => {
+      scheduledRhythm.notes[startingNoteIndex]?.relativeTimestamp ?? 0;
+    scheduledRhythm.notes.forEach((note) => {
       const startTimeOffsetRaw = note.relativeTimestamp - offset;
       const startTimeOffset =
         startTimeOffsetRaw < 0
-          ? startTimeOffsetRaw + scheduledMeasure.duration
+          ? startTimeOffsetRaw + scheduledRhythm.duration
           : startTimeOffsetRaw;
       note.source.start((zeroTime + startTimeOffset) / 1000);
       note.source.loop = true;
       note.source.loopStart = 0;
-      note.source.loopEnd = scheduledMeasure.duration / 1000;
+      note.source.loopEnd = scheduledRhythm.duration / 1000;
     });
 
-    this.scheduledMeasure = {
-      ...scheduledMeasure,
+    this.scheduledRhythm = {
+      ...scheduledRhythm,
       startTime: zeroTime - offset,
     };
     this.dispatchEvent({
-      type: "measure-started",
-      measure: this.scheduledMeasure,
+      type: "rhythm-started",
+      rhythm: this.scheduledRhythm,
       startingNoteIndex,
       now,
       timeUntilExpectedStart: Math.max(
@@ -153,7 +162,7 @@ export class Metronome {
     });
   }
 
-  public start(rhythm: Rhythm) {
+  public start(measures: Measure[]) {
     if (!this.player.initialized) {
       this.player.init();
     }
@@ -162,9 +171,9 @@ export class Metronome {
       now: Date.now(),
       timestamp: this.currentTime,
     });
-    rhythm.waitForInit().then(() => {
-      this.rhythm = rhythm;
-      this.scheduleMeasure(this.rhythm);
+    Promise.allSettled(measures.map((m) => m.waitForInit())).then(() => {
+      this.measures = measures;
+      this.scheduleRhythm(this.measures);
       this.player.start();
       this.playing = true;
     });
@@ -176,7 +185,7 @@ export class Metronome {
     this.player.stop();
     this.timer.stop();
     this.nextNoteIndexAfterTempoChange = undefined;
-    this.scheduledMeasure = undefined;
+    this.scheduledRhythm = undefined;
     this.playing = false;
     this.dispatchEvent({ type: "stop" });
   }
@@ -184,41 +193,60 @@ export class Metronome {
   public setBpm(bpm: number) {
     this.bpm = bpm;
     if (this.playing) {
-      this.updateMeasure();
+      this.updateRhythm(RhythmChangeType.tempo);
     }
   }
   public setBeatDivision(beatDivision: number) {
     this._beatDivision = beatDivision;
     if (this.playing) {
-      this.updateMeasure();
+      this.updateRhythm(RhythmChangeType.tempo);
     }
   }
 
-  public setRhythm(rhythm: Rhythm) {
-    if (!this.scheduledMeasure || !this.playing) {
+  public setMeasures(measures: Measure[]) {
+    if (!this.scheduledRhythm || !this.playing) {
       return;
     }
-    rhythm.waitForInit().then(() => {
-      this.rhythm = rhythm;
-      this.updateMeasure();
+    Promise.allSettled(measures.map((m) => m.waitForInit())).then(() => {
+      this.measures = measures;
+      this.updateRhythm(RhythmChangeType.measures);
     });
   }
 
-  private updateMeasure() {
-    if (!this.scheduledMeasure || !this.rhythm) {
+  private updateRhythm(type: RhythmChangeType) {
+    if (!this.scheduledRhythm || !this.measures) {
       return;
     }
     const currentTime = this.currentTime;
     const now = Date.now();
 
-    const [nextNote, timeUntilNextNote] = this.getNextNote(
-      this.scheduledMeasure,
+    const [nextNoteInOldRhythm, timeUntilNextNote] = this.getNextNote(
+      this.scheduledRhythm,
+      this.scheduledRhythm.startTime,
       currentTime,
     );
+    let nextNote = nextNoteInOldRhythm;
+
+    if (type === RhythmChangeType.measures) {
+      const newRhythm = new Rhythm({
+        tempo: { bpm: this.bpm, beatDivision: this._beatDivision },
+        measures: this.measures,
+      });
+      const [nextNoteInNewRhythm] =
+        nextNote.relativeTimestamp > newRhythm.duration
+          ? [newRhythm.notes[0]]
+          : this.getNextNote(
+              newRhythm,
+              this.scheduledRhythm.startTime,
+              currentTime,
+            );
+
+      nextNote = nextNoteInNewRhythm;
+    }
 
     if (timeUntilNextNote < this.lookaheadTime) {
-      this.scheduleMeasure(
-        this.rhythm,
+      this.scheduleRhythm(
+        this.measures,
         currentTime + timeUntilNextNote,
         nextNote?.note.index,
       );
@@ -240,36 +268,41 @@ export class Metronome {
   private onTimeout(e: TimerWorkerTimeoutEvent) {
     if (
       e.id !== this.getTimeoutId() ||
-      !this.rhythm ||
+      !this.measures ||
       this.nextNoteIndexAfterTempoChange == null
     ) {
       return;
     }
 
-    this.scheduleMeasure(
-      this.rhythm,
+    this.scheduleRhythm(
+      this.measures,
       Math.max(e.timestamp, this.currentTime + this.frameTime * 2),
       this.nextNoteIndexAfterTempoChange,
     );
   }
 
-  private getNextNote(measure: ScheduledMeasure, currentTime: number) {
-    const curTimeInMeasure =
-      (currentTime - measure.startTime) % measure.duration;
-    const nextNote = measure.notes.find(
-      (note) => note.relativeTimestamp > curTimeInMeasure,
-    );
-    const timeUntilNextNote =
-      (nextNote ? nextNote.relativeTimestamp : measure.duration) -
-      curTimeInMeasure;
+  private getNextNote(
+    rhythm: IRhythmWithData,
+    startTime: number,
+    currentTime: number,
+  ) {
+    const curTimeInRhythm = (currentTime - startTime) % rhythm.duration;
+    const nextNote = Rhythm.nextNote(rhythm, curTimeInRhythm);
+    let timeUntilNextNote =
+      (nextNote ? nextNote.relativeTimestamp : rhythm.duration) -
+      curTimeInRhythm;
+    if (timeUntilNextNote < 0) {
+      timeUntilNextNote += rhythm.duration;
+    }
 
     if (timeUntilNextNote < this.lookaheadTime) {
-      const followingNoteIndex = measure.rhythm.nextNote(
-        nextNote?.note ?? 0,
-      ).index;
+      const followingNote = Rhythm.nextNote(
+        rhythm,
+        nextNote?.relativeTimestamp ?? -1,
+      );
       return [
-        measure.notes[followingNoteIndex],
-        timeUntilNextNote + (nextNote ?? measure.notes[0]).duration,
+        followingNote,
+        timeUntilNextNote + (nextNote ?? rhythm.notes[0]).duration,
       ] as const;
     }
 
@@ -287,8 +320,8 @@ export class Metronome {
   }
   setVolume(value: number) {
     this.player.volume = value;
-    if (this.scheduledMeasure) {
-      this.scheduledMeasure.notes.forEach((note) => {
+    if (this.scheduledRhythm) {
+      this.scheduledRhythm.notes.forEach((note) => {
         note.note.onChangePlayerVolume(value);
       });
     }
@@ -340,9 +373,9 @@ export type MetronomeNotePlayedEvent = {
   index: number;
   duration: number;
 };
-export type MetronomeMeasureStartedEvent = {
-  type: "measure-started";
-  measure: ScheduledMeasure;
+export type MetronomeRhythmStartedEvent = {
+  type: "rhythm-started";
+  rhythm: ScheduledRhythm;
   startingNoteIndex: number;
   timeUntilExpectedStart: number;
   now: number;
@@ -353,7 +386,7 @@ export type MetronomeStopEvent = {
 
 export type MetronomeEvent =
   | MetronomeNotePlayedEvent
-  | MetronomeMeasureStartedEvent
+  | MetronomeRhythmStartedEvent
   | MetronomeStopEvent;
 
 export type MetronomeEventType = MetronomeEvent["type"];

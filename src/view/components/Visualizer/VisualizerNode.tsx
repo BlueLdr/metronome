@@ -3,12 +3,11 @@
 import { alpha, keyframes, styled } from "@mui/material/styles";
 import { useImperativeHandle, useState } from "react";
 
-import { getNoteStartTimeOffsetInScheduledMeasure } from "~/utils/helpers";
+import { getNoteStartTimeOffsetInScheduledRhythm } from "~/utils/helpers";
 
 import { useForkRef } from "@mui/material/utils";
 
-import type { Theme } from "@mui/material/styles";
-import type { IBeat, IRhythm, MetronomeMeasureStartedEvent } from "~/model";
+import type { IBeat, IMeasure, MetronomeRhythmStartedEvent } from "~/model";
 import type { WithOverrides } from "~/utils/types";
 import type { VisualizerNodeHandle, VisualizerProps } from "./types";
 
@@ -26,33 +25,6 @@ type VisualizerNodeOwnerState = Pick<
   isOnlyBeat: boolean;
   extraEmphasis?: boolean;
 };
-
-const makeRootAnimation = (theme: Theme, stopPercent: number) => keyframes`
-    0% {
-      background-color: ${alpha(theme.palette.secondary.dark, 0.5)};
-      border-color: ${alpha(theme.palette.secondary.main, 1)};
-    }
-    ${`${stopPercent}%`} {
-      background-color: ${alpha(theme.palette.secondary.dark, 0)};
-      border-color: ${alpha(theme.palette.secondary.main, 0.2)};
-    }
-`;
-
-const makeRootEmphasizedAnimation = (
-  theme: Theme,
-  stopPercent: number,
-) => keyframes`
-    0% {
-      background-color: ${alpha(theme.palette.secondary.dark, 0.5)};
-      border-color: ${alpha(theme.palette.secondary.main, 1)};
-      outline: var(--visualizer-outline-width) solid ${alpha(theme.palette.secondary.main, 1)};
-    }
-    ${`${stopPercent}%`} {
-      background-color: ${alpha(theme.palette.secondary.dark, 0)};
-      border-color: ${alpha(theme.palette.secondary.main, 0.2)};
-      outline: var(--visualizer-outline-width) solid ${alpha(theme.palette.secondary.main, 0)};
-    }
-`;
 
 const makePulseOpacityAnimation = (stopPercent: number) => keyframes`
     0% {
@@ -109,37 +81,54 @@ const Root = styled("div", { name: "MuiVisualizerNode", slot: "root" })<{
         )[ownerState.size ?? "medium"];
 
   const { beatDuration, extraEmphasis, isOnlyBeat } = ownerState;
-  const makeAnimation = extraEmphasis
-    ? makeRootEmphasizedAnimation
-    : makeRootAnimation;
 
   return {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    width: dimension,
-    height: dimension,
-    borderRadius: `calc(${dimension}/2)`,
+    position: "relative",
     border: `1px solid ${alpha(theme.palette.secondary.main, 0.2)}`,
-    outline: "0px solid transparent",
-    animationTimingFunction: theme.transitions.easing.easeInOut,
-    animationDuration: "var(--visualizer-measure-duration)",
     animationIterationCount: "infinite",
     animationFillMode: "none",
-    position: "relative",
     "--visualizer-outline-width": `min(calc(${dimension} / 10), 1rem)`,
+    // overflow: "hidden",
+
+    "&, &::after": {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: dimension,
+      height: dimension,
+      borderRadius: `calc(${dimension}/2)`,
+    },
+
+    "&::after": {
+      content: '" "',
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      transform: "translate(-50%, -50%)",
+
+      backgroundColor: alpha(theme.palette.secondary.dark, 0.5),
+      border: `1px solid ${alpha(theme.palette.secondary.main, 1)}`,
+      outline: extraEmphasis
+        ? `var(--visualizer-outline-width) solid ${alpha(theme.palette.secondary.main, 1)}`
+        : undefined,
+      opacity: 0,
+
+      animationTimingFunction: theme.transitions.easing.easeInOut,
+      animationDuration: "var(--visualizer-rhythm-duration)",
+      animationDelay: "inherit",
+      animationFillMode: "inherit",
+      animationIterationCount: "inherit",
+    },
 
     '&[data-animate="true"]:not(:has(> [data-subpulse="true"][data-only-pulse="true"]))':
       {
-        '&[data-only-beat="false"]': {
-          animationName: makeAnimation(
-            theme,
+        '&[data-only-beat="false"]::after': {
+          animationName: makePulseOpacityAnimation(
             100 * beatDuration * (isOnlyBeat ? 1 : 1.2),
           ),
         },
-        '&[data-only-beat="true"]': {
-          animationName: makeRootAnimation(theme, 100 * beatDuration),
+        '&[data-only-beat="true"]::after': {
+          animationName: makePulseOpacityAnimation(100 * beatDuration),
         },
       },
   };
@@ -174,7 +163,7 @@ const Pulse = styled("div", { name: "MuiVisualizerNode", slot: "pulse" })<{
     transform: "scale(0)",
     opacity: 0,
     animationTimingFunction: theme.transitions.easing.easeOut,
-    animationDuration: "var(--visualizer-measure-duration)",
+    animationDuration: "var(--visualizer-rhythm-duration)",
     animationFillMode: "inherit",
     animationIterationCount: "inherit",
 
@@ -210,12 +199,12 @@ const Pulse = styled("div", { name: "MuiVisualizerNode", slot: "pulse" })<{
 //================================================
 
 const setAnimationStartTimeForNote = (
-  event: MetronomeMeasureStartedEvent,
+  event: MetronomeRhythmStartedEvent,
   noteIndex: number,
   element: HTMLElement | null,
 ) => {
-  const startDelay = getNoteStartTimeOffsetInScheduledMeasure(
-    event.measure,
+  const startDelay = getNoteStartTimeOffsetInScheduledRhythm(
+    event.rhythm,
     noteIndex,
     event.startingNoteIndex,
   );
@@ -293,7 +282,7 @@ export type VisualizerNodeProps = WithOverrides<
   {
     handleRef: (index: number, handle: VisualizerNodeHandle | null) => void;
     index: number;
-    rhythm: IRhythm;
+    measure: IMeasure;
     beat?: IBeat;
     beatsCombined?: boolean;
   } & Pick<VisualizerProps, "size" | "subdivisions">
@@ -301,7 +290,7 @@ export type VisualizerNodeProps = WithOverrides<
 
 export function VisualizerNode({
   index,
-  rhythm,
+  measure,
   size,
   handleRef,
   ref,
@@ -313,11 +302,11 @@ export function VisualizerNode({
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const [mainPulse, setMainPulse] = useState<HTMLDivElement | null>(null);
 
-  const noteCount = rhythm.notes.length;
+  const noteCount = measure.notes.length;
   const isCombined = subdivisions === "combined";
   const isBeat = index === beat?.noteIndex;
 
-  const note = rhythm.notes[index];
+  const note = measure.notes[index];
 
   useImperativeHandle<VisualizerNodeHandle, VisualizerNodeHandle>(
     (handle) => handleRef(index, handle),
@@ -338,10 +327,10 @@ export function VisualizerNode({
     size,
     beatDuration:
       (beat ? beat.totalInterval : note.interval) /
-      (rhythm.timeSignature.count / rhythm.timeSignature.division),
+      (measure.timeSignature.count / measure.timeSignature.division),
     noteDuration:
       note.interval /
-      (rhythm.timeSignature.count / rhythm.timeSignature.division),
+      (measure.timeSignature.count / measure.timeSignature.division),
     isBeat,
     isOnlyPulse:
       !subdivisions || !(isCombined && beat && beat.notes.length > 1),

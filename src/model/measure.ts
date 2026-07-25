@@ -1,30 +1,69 @@
-import type { Note } from "./note";
-import type { Rhythm } from "./rhythm";
+import { MINUTE } from "~/utils/constants";
+
+import { Note } from "./note";
+
+import type { NoteDivision } from "~/utils/types";
+import type { ITempo } from "./rhythm";
+import type { INote } from "./note";
 
 //================================================
 
-export interface ITempo {
-  bpm: number;
-  beatDivision: number;
+export interface TimeSignature {
+  count: number;
+  division: NoteDivision;
 }
 
-export interface MeasureNote {
-  note: Note;
-  relativeTimestamp: number;
-  duration: number;
+export interface IMeasure {
+  timeSignature: TimeSignature;
+  notes: INote[];
 }
 
-export interface Measure {
-  rhythm: Rhythm;
-  tempo: ITempo;
-  duration: number;
-  notes: MeasureNote[];
-}
+export class Measure implements IMeasure {
+  constructor(timeSignature: TimeSignature, notes: INote[]) {
+    this.timeSignature = timeSignature;
+    this.notePromises = [];
+    this.notes = this.initializeNotes(notes);
+  }
 
-export interface MeasureNoteWithSource extends MeasureNote {
-  source: AudioBufferSourceNode;
-}
+  readonly timeSignature: TimeSignature;
+  readonly notes: Note[];
 
-export interface MeasureWithSources extends Omit<Measure, "notes"> {
-  notes: MeasureNoteWithSource[];
+  private notePromises: Promise<void>[];
+
+  private initializeNotes(defs: INote[]): Note[] {
+    const notes: Note[] = [];
+    let i = 0;
+    for (const def of defs) {
+      const resolveRef: { current: (...args: undefined[]) => void } = {
+        current: () => undefined,
+      };
+      const promise = new Promise<void>((resolve) => {
+        resolveRef.current = resolve;
+      });
+      this.notePromises.push(promise);
+      notes.push(new Note(i, def, () => resolveRef.current()));
+      i += 1;
+    }
+
+    return notes;
+  }
+
+  waitForInit() {
+    return Promise.allSettled(this.notePromises);
+  }
+
+  getMeasureDuration(tempo: ITempo) {
+    const { bpm, beatDivision } = tempo;
+    const beatValueDuration = MINUTE / bpm;
+    const beatDuration =
+      beatValueDuration * (beatDivision / this.timeSignature.division);
+    return beatDuration * this.timeSignature.count;
+  }
+
+  toJSON() {
+    return {
+      timeSignature: this.timeSignature,
+      notes: this.notes,
+    };
+  }
 }

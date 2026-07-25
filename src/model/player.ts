@@ -1,11 +1,8 @@
 import { Note } from "./note";
 import { Sound } from "./sound";
+import { Rhythm } from "./rhythm";
 
-import type {
-  Measure,
-  MeasureNoteWithSource,
-  MeasureWithSources,
-} from "./measure";
+import type { RhythmNoteWithSource, IRhythmWithSources } from "./rhythm";
 
 //================================================
 
@@ -83,22 +80,22 @@ export class Player {
     return source;
   }
 
-  public async getSourcesForMeasure(
-    measure: Measure,
-  ): Promise<MeasureWithSources> {
+  public async getSourcesForRhythm(
+    rhythm: Rhythm,
+  ): Promise<IRhythmWithSources> {
     const ctx = this.ctx;
     if (!this._initialized || !ctx) {
       return Promise.reject(
         new Error(
-          "[Player] Tried to get sources for measure before initializing player",
+          "[Player] Tried to get sources for rhythm before initializing player",
         ),
       );
     }
     return Promise.allSettled(
-      measure.notes.map((sNote) =>
+      rhythm.notes.map((sNote) =>
         sNote.note
           .getNoteSourceNode(ctx, this._volume, (buffer) => {
-            const newBufferLength = (measure.duration / 1000) * ctx.sampleRate;
+            const newBufferLength = (rhythm.duration / 1000) * ctx.sampleRate;
             if (newBufferLength < buffer.length) {
               return buffer;
             }
@@ -115,14 +112,14 @@ export class Player {
             return newBuffer;
           })
           .then(
-            (source): MeasureNoteWithSource => ({
+            (source): RhythmNoteWithSource => ({
               ...sNote,
               source,
             }),
           ),
       ),
     ).then((results) => {
-      const notes: MeasureNoteWithSource[] = [];
+      const notes: RhythmNoteWithSource[] = [];
       const failed: PromiseRejectedResult[] = [];
       results.forEach((result) => {
         if (result.status === "rejected") {
@@ -135,18 +132,20 @@ export class Player {
       if (failed.length > 0) {
         notes.forEach((note) => note.source.stop());
         console.error(
-          `[Player] Some notes in the measure failed to initialize source nodes`,
+          `[Player] Some notes in the rhythm failed to initialize source nodes`,
           failed,
         );
         return Promise.reject(
           new Error(
-            "[Player] Some notes in the measure failed to initialize source nodes",
+            "[Player] Some notes in the rhythm failed to initialize source nodes",
           ),
         );
       }
 
       return {
-        ...measure,
+        measures: rhythm.measures,
+        duration: rhythm.duration,
+        tempo: rhythm.tempo,
         notes,
       };
     });

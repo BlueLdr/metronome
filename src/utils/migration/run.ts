@@ -39,7 +39,7 @@ export default function runMigrations() {
         console.log(
           `\tRunning migration: ${migration.oldVersion} => ${migration.newVersion}`,
         );
-        newData = migration(newData);
+        newData = migration(newData as never);
       }
     });
 

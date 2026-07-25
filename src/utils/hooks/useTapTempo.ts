@@ -18,7 +18,10 @@ export const useTapTempo = (options: UseTapTempoOptions) => {
   const { state } = useAppState();
 
   const {
-    sampleSize = state.rhythm.timeSignature.count,
+    sampleSize = state.measures.reduce(
+      (max, m) => Math.max(max, m.timeSignature.count),
+      1,
+    ),
     onUpdate,
     onFinish,
   } = options;

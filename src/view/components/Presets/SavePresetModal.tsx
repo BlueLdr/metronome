@@ -26,7 +26,11 @@ export function SavePresetModal({
 }: SavePresetModalProps) {
   const { state } = useAppState();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, name, ...curState } = buildPreset(state.rhythm, state.tempo, "");
+  const { id, name, ...curState } = buildPreset(
+    state.measures[0],
+    state.tempo,
+    "",
+  );
 
   const [target, setTarget] = useState<NewMetronomePreset>();
   const onClose = () => setTarget(undefined);

@@ -25,10 +25,15 @@ export const useThrottledUpdate = <Value>(
   interval: number,
   deps: unknown[],
   value: Value,
+  getEqualityValue: (
+    value: Value,
+  ) => Value | string | number | boolean | undefined | null = (v) => v,
 ) => {
   const setValue = useThrottledCallback(callback, interval, deps);
 
+  const equalityValue = getEqualityValue(value);
   useEffect(() => {
     setValue(value);
-  }, [value, setValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [equalityValue, setValue]);
 };
