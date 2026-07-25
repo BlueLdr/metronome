@@ -10,12 +10,29 @@ import type {
   TimeSignature,
   INote,
 } from "~/model";
-import type { MetronomePreset, SoundSettings } from "~/utils/types";
+import type {
+  MetronomePreset,
+  NoteDivision,
+  SoundSettings,
+} from "~/utils/types";
 
 //================================================
 
 export const isTuplet = (count: number, division: number) =>
   count > 2 && !isInt(division / count);
+
+export const getNoteInterval = (note: INote): number => {
+  let interval = 1 / note.division;
+  if (note.tuplet) {
+    const fraction =
+      Math.pow(2, Math.floor(Math.log2(note.tuplet))) / note.tuplet;
+    interval *= fraction;
+  }
+  if (note.dotted) {
+    interval *= note.dotted === 2 ? 1.75 : 1.5;
+  }
+  return interval;
+};
 
 export const calculateBeats = (measure: IMeasure): (IBeat | undefined)[] => {
   let currentBeat: IBeat;
@@ -24,21 +41,22 @@ export const calculateBeats = (measure: IMeasure): (IBeat | undefined)[] => {
   let duration = 0;
 
   measure.notes.forEach((note, index) => {
+    const interval = getNoteInterval(note);
     if (isInt(duration)) {
       currentBeat = {
         noteIndex: index,
         beatIndex,
-        totalInterval: note.interval,
+        totalInterval: interval,
         notes: [note],
       };
       beats.push(currentBeat);
       beatIndex++;
     } else {
-      currentBeat.totalInterval += note.interval;
+      currentBeat.totalInterval += interval;
       currentBeat.notes.push(note);
       beats.push(undefined);
     }
-    duration += note.interval * measure.timeSignature.division;
+    duration += interval * measure.timeSignature.division;
   });
 
   return beats;
@@ -68,20 +86,35 @@ export const createMeasure = (
 ) => {
   const newNoteCount = subdivisions * timeSignature.count;
   const newNotes: INote[] = [];
+  const isTuplet = !isInt(Math.log2(subdivisions));
   for (let i = 0; i < newNoteCount; i++) {
-    const noteInterval = 1 / timeSignature.division / subdivisions;
     const config =
       soundSettings[
         i === 0 ? "firstBeat" : i % subdivisions === 0 ? "base" : "subdivision"
       ];
     newNotes.push({
-      interval: noteInterval,
+      division: (isTuplet
+        ? timeSignature.division *
+          Math.pow(2, Math.floor(Math.log2(subdivisions)))
+        : timeSignature.division * subdivisions) as NoteDivision,
       volume: config.volume,
       sound: config.sound ?? soundSettings.base.sound,
+      tuplet: isTuplet ? subdivisions : undefined,
     });
   }
 
   return new Measure(timeSignature, newNotes);
+};
+
+export const getIntervalWithSubdivision = (
+  division: NoteDivision,
+  subdivisions: number,
+) => {
+  return (1 /
+    division /
+    (!isInt(Math.log2(subdivisions))
+      ? Math.pow(2, Math.floor(Math.log2(subdivisions)))
+      : subdivisions)) as NoteDivision;
 };
 
 export const buildPresetId = (

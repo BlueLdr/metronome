@@ -111,22 +111,22 @@ export const DEFAULT_MEASURE: IMeasure = {
     {
       sound: DEFAULT_SOUND,
       volume: DEFAULT_SOUND_SETTINGS.firstBeat.volume,
-      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+      division: DEFAULT_TIME_SIGNATURE.division,
     },
     {
       sound: DEFAULT_SOUND,
       volume: DEFAULT_SOUND_SETTINGS.base.volume,
-      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+      division: DEFAULT_TIME_SIGNATURE.division,
     },
     {
       sound: DEFAULT_SOUND,
       volume: DEFAULT_SOUND_SETTINGS.base.volume,
-      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+      division: DEFAULT_TIME_SIGNATURE.division,
     },
     {
       sound: DEFAULT_SOUND,
       volume: DEFAULT_SOUND_SETTINGS.base.volume,
-      interval: 1 / DEFAULT_TIME_SIGNATURE.division,
+      division: DEFAULT_TIME_SIGNATURE.division,
     },
   ],
 };

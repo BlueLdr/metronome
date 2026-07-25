@@ -1,8 +1,11 @@
 import { Note } from "./note";
 import { Sound } from "./sound";
-import { Rhythm } from "./rhythm";
 
-import type { RhythmNoteWithSource, IRhythmWithSources } from "./rhythm";
+import type {
+  IRhythmWithData,
+  RhythmNoteWithSource,
+  IRhythmWithSources,
+} from "./rhythm";
 
 //================================================
 
@@ -81,7 +84,7 @@ export class Player {
   }
 
   public async getSourcesForRhythm(
-    rhythm: Rhythm,
+    rhythm: IRhythmWithData,
   ): Promise<IRhythmWithSources> {
     const ctx = this.ctx;
     if (!this._initialized || !ctx) {

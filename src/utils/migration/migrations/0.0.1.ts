@@ -1,6 +1,6 @@
 import { DEFAULT_MISC_STATE } from "~/utils/constants";
 
-import type { IMeasure, ITempo, TimeSignature } from "~/model";
+import type { ISound, ITempo, TimeSignature } from "~/model";
 import type { Migration } from "~/utils/migration";
 import type { AppSettings } from "~/utils/types";
 
@@ -11,13 +11,24 @@ const NEW_VERSION = "0.0.2" as const;
 
 //================================================
 
+export interface INote_0_0_1 {
+  volume: number;
+  sound: ISound;
+  interval: number;
+}
+
+export interface IMeasure_0_0_1 {
+  timeSignature: TimeSignature;
+  notes: INote_0_0_1[];
+}
+
 type AppData_0_0_1 = {
   settings: AppSettings;
 };
 
 export type AppMainState_0_0_1 = {
   version: typeof OLD_VERSION;
-  rhythm: IMeasure;
+  rhythm: IMeasure_0_0_1;
   tempo: ITempo;
   volume: number;
   data: AppData_0_0_1;
@@ -45,7 +56,7 @@ type AppData_0_0_2 = {
 
 export type AppMainState_0_0_2 = {
   version: typeof NEW_VERSION;
-  rhythm: IMeasure;
+  rhythm: IMeasure_0_0_1;
   tempo: ITempo;
   volume: number;
   data: AppData_0_0_2;
